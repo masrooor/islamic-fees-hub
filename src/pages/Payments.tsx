@@ -28,7 +28,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
+import { downloadCSV } from "@/lib/exportCsv";
 import { format } from "date-fns";
 
 export default function Payments() {
@@ -75,6 +76,25 @@ export default function Payments() {
             Record and track fee payments
           </p>
         </div>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              const headers = ["Date", "Student", "Fee Type", "Amount", "Receipt #", "Notes"];
+              const rows = sortedPayments.map((p) => [
+                p.date,
+                getStudentName(p.studentId),
+                p.feeType,
+                String(p.amountPaid),
+                p.receiptNumber,
+                p.notes,
+              ]);
+              downloadCSV("payments.csv", headers, rows);
+            }}
+          >
+            <Download className="h-4 w-4 mr-1" /> Export CSV
+          </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm">
@@ -159,6 +179,7 @@ export default function Payments() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card>
