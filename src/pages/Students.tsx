@@ -28,7 +28,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Download } from "lucide-react";
+import { downloadCSV } from "@/lib/exportCsv";
 import { format } from "date-fns";
 
 const emptyForm: Omit<Student, "id"> = {
@@ -96,6 +97,18 @@ export default function Students() {
             Manage student enrollment
           </p>
         </div>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              const headers = ["Name", "Guardian", "Class", "Contact", "Enrollment Date", "Status"];
+              const rows = filtered.map((s) => [s.name, s.guardianName, s.classGrade, s.contact, s.enrollmentDate, s.status]);
+              downloadCSV("students.csv", headers, rows);
+            }}
+          >
+            <Download className="h-4 w-4 mr-1" /> Export CSV
+          </Button>
         <Dialog
           open={dialogOpen}
           onOpenChange={(open) => {
@@ -180,6 +193,7 @@ export default function Students() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="flex gap-3">
