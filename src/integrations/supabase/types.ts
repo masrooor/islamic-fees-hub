@@ -89,6 +89,7 @@ export type Database = {
           id: string
           name: string
           status: string
+          student_code: string
         }
         Insert: {
           class_grade: string
@@ -99,6 +100,7 @@ export type Database = {
           id?: string
           name: string
           status?: string
+          student_code?: string
         }
         Update: {
           class_grade?: string
@@ -109,6 +111,7 @@ export type Database = {
           id?: string
           name?: string
           status?: string
+          student_code?: string
         }
         Relationships: []
       }

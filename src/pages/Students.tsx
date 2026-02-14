@@ -31,23 +31,35 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Pencil, Trash2, Download } from "lucide-react";
 import { downloadCSV } from "@/lib/exportCsv";
 import { format } from "date-fns";
+import StudentCsvImport from "@/components/StudentCsvImport";
 
-const emptyForm: Omit<Student, "id"> = {
+type StudentForm = {
+  name: string;
+  guardianName: string;
+  contact: string;
+  classGrade: string;
+  enrollmentDate: string;
+  status: "active" | "inactive";
+  studentCode: string;
+};
+
+const emptyForm: StudentForm = {
   name: "",
   guardianName: "",
   contact: "",
   classGrade: "",
   enrollmentDate: format(new Date(), "yyyy-MM-dd"),
   status: "active",
+  studentCode: "",
 };
 
 export default function Students() {
-  const { students, addStudent, updateStudent, deleteStudent } = useStudents();
+  const { students, addStudent, bulkAddStudents, updateStudent, deleteStudent } = useStudents();
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState<StudentForm>(emptyForm);
 
   const filtered = students.filter((s) => {
     const matchSearch =
@@ -78,6 +90,7 @@ export default function Students() {
       classGrade: student.classGrade,
       enrollmentDate: student.enrollmentDate,
       status: student.status,
+      studentCode: student.studentCode,
     });
     setDialogOpen(true);
   };
@@ -102,13 +115,14 @@ export default function Students() {
             size="sm"
             variant="outline"
             onClick={() => {
-              const headers = ["Name", "Guardian", "Class", "Contact", "Enrollment Date", "Status"];
-              const rows = filtered.map((s) => [s.name, s.guardianName, s.classGrade, s.contact, s.enrollmentDate, s.status]);
+              const headers = ["Code", "Name", "Guardian", "Class", "Contact", "Enrollment Date", "Status"];
+              const rows = filtered.map((s) => [s.studentCode, s.name, s.guardianName, s.classGrade, s.contact, s.enrollmentDate, s.status]);
               downloadCSV("students.csv", headers, rows);
             }}
           >
             <Download className="h-4 w-4 mr-1" /> Export CSV
           </Button>
+          <StudentCsvImport onImport={bulkAddStudents} />
         <Dialog
           open={dialogOpen}
           onOpenChange={(open) => {
@@ -131,6 +145,14 @@ export default function Students() {
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2">
+              <div>
+                <Label>Student Code <span className="text-xs text-muted-foreground">(leave blank to auto-generate)</span></Label>
+                <Input
+                  value={form.studentCode}
+                  onChange={(e) => setForm({ ...form, studentCode: e.target.value })}
+                  placeholder="e.g. STU-001"
+                />
+              </div>
               <div>
                 <Label>Full Name *</Label>
                 <Input
@@ -226,6 +248,7 @@ export default function Students() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Code</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Guardian</TableHead>
                 <TableHead>Class</TableHead>
@@ -237,13 +260,14 @@ export default function Students() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     No students found.
                   </TableCell>
                 </TableRow>
               ) : (
                 filtered.map((s) => (
                   <TableRow key={s.id}>
+                    <TableCell className="text-xs text-muted-foreground font-mono">{s.studentCode}</TableCell>
                     <TableCell className="font-medium">{s.name}</TableCell>
                     <TableCell>{s.guardianName}</TableCell>
                     <TableCell>{s.classGrade}</TableCell>

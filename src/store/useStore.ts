@@ -16,6 +16,7 @@ export function useStudents() {
       setStudents(
         data.map((s) => ({
           id: s.id,
+          studentCode: (s as any).student_code ?? "",
           name: s.name,
           guardianName: s.guardian_name,
           contact: s.contact,
@@ -30,21 +31,41 @@ export function useStudents() {
 
   useEffect(() => { fetchStudents(); }, [fetchStudents]);
 
-  const addStudent = useCallback(async (student: Omit<Student, "id">) => {
+  const addStudent = useCallback(async (student: Omit<Student, "id" | "studentCode"> & { studentCode?: string }) => {
+    const insertData: Record<string, unknown> = {
+      name: student.name,
+      guardian_name: student.guardianName,
+      contact: student.contact,
+      class_grade: student.classGrade,
+      enrollment_date: student.enrollmentDate,
+      status: student.status,
+    };
+    if (student.studentCode) insertData.student_code = student.studentCode;
     const { data, error } = await supabase
       .from("students")
-      .insert({
-        name: student.name,
-        guardian_name: student.guardianName,
-        contact: student.contact,
-        class_grade: student.classGrade,
-        enrollment_date: student.enrollmentDate,
-        status: student.status,
-      })
+      .insert(insertData as any)
       .select()
       .single();
     if (data) await fetchStudents();
     return data;
+  }, [fetchStudents]);
+
+  const bulkAddStudents = useCallback(async (students: Array<Omit<Student, "id" | "studentCode"> & { studentCode?: string }>) => {
+    const rows = students.map((s) => {
+      const row: Record<string, unknown> = {
+        name: s.name,
+        guardian_name: s.guardianName,
+        contact: s.contact,
+        class_grade: s.classGrade,
+        enrollment_date: s.enrollmentDate,
+        status: s.status,
+      };
+      if (s.studentCode) row.student_code = s.studentCode;
+      return row;
+    });
+    const { error } = await supabase.from("students").insert(rows as any);
+    await fetchStudents();
+    return error;
   }, [fetchStudents]);
 
   const updateStudent = useCallback(async (id: string, updates: Partial<Student>) => {
@@ -64,7 +85,7 @@ export function useStudents() {
     await fetchStudents();
   }, [fetchStudents]);
 
-  return { students, loading, addStudent, updateStudent, deleteStudent };
+  return { students, loading, addStudent, bulkAddStudents, updateStudent, deleteStudent };
 }
 
 export function useFeeStructures() {
