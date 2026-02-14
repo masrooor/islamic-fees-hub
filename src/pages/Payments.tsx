@@ -39,11 +39,13 @@ export default function Payments() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
 
+  const currentMonth = format(new Date(), "yyyy-MM");
   const [form, setForm] = useState({
     studentId: "",
     feeType: "tuition" as "tuition" | "registration",
     amountPaid: 0,
     date: format(new Date(), "yyyy-MM-dd"),
+    feeMonth: currentMonth,
     notes: "",
   });
 
@@ -55,6 +57,7 @@ export default function Payments() {
       feeType: "tuition",
       amountPaid: 0,
       date: format(new Date(), "yyyy-MM-dd"),
+      feeMonth: currentMonth,
       notes: "",
     });
     setDialogOpen(false);
@@ -81,9 +84,10 @@ export default function Payments() {
             size="sm"
             variant="outline"
             onClick={() => {
-              const headers = ["Date", "Student", "Fee Type", "Amount", "Receipt #", "Notes"];
+              const headers = ["Date", "Fee Month", "Student", "Fee Type", "Amount", "Receipt #", "Notes"];
               const rows = sortedPayments.map((p) => [
                 p.date,
+                p.feeMonth,
                 getStudentName(p.studentId),
                 p.feeType,
                 String(p.amountPaid),
@@ -158,7 +162,15 @@ export default function Payments() {
                 />
               </div>
               <div>
-                <Label>Date</Label>
+                <Label>Fee Month *</Label>
+                <Input
+                  type="month"
+                  value={form.feeMonth}
+                  onChange={(e) => setForm({ ...form, feeMonth: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Payment Date</Label>
                 <Input
                   type="date"
                   value={form.date}
@@ -188,6 +200,7 @@ export default function Payments() {
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
+                <TableHead>Fee Month</TableHead>
                 <TableHead>Student</TableHead>
                 <TableHead>Fee Type</TableHead>
                 <TableHead>Amount</TableHead>
@@ -198,7 +211,7 @@ export default function Payments() {
               {sortedPayments.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={6}
                     className="text-center py-8 text-muted-foreground"
                   >
                     No payments recorded yet.
@@ -208,6 +221,7 @@ export default function Payments() {
                 sortedPayments.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell>{p.date}</TableCell>
+                    <TableCell>{p.feeMonth}</TableCell>
                     <TableCell className="font-medium">
                       {getStudentName(p.studentId)}
                     </TableCell>

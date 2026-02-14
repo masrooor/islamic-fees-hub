@@ -157,6 +157,7 @@ export function usePayments() {
           feeType: p.fee_type as "tuition" | "registration",
           amountPaid: Number(p.amount_paid),
           date: p.date,
+          feeMonth: (p as any).fee_month ?? "",
           receiptNumber: p.receipt_number,
           notes: p.notes,
         }))
@@ -176,6 +177,7 @@ export function usePayments() {
         fee_type: payment.feeType,
         amount_paid: payment.amountPaid,
         date: payment.date,
+        fee_month: payment.feeMonth,
         receipt_number: receiptNumber,
         notes: payment.notes,
       })
@@ -189,6 +191,7 @@ export function usePayments() {
         feeType: data.fee_type as "tuition" | "registration",
         amountPaid: Number(data.amount_paid),
         date: data.date,
+        feeMonth: (data as any).fee_month ?? "",
         receiptNumber: data.receipt_number,
         notes: data.notes,
       };

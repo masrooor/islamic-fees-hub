@@ -22,6 +22,7 @@ export interface Payment {
   feeType: "tuition" | "registration";
   amountPaid: number;
   date: string;
+  feeMonth: string;
   receiptNumber: string;
   notes: string;
 }
