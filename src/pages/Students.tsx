@@ -62,9 +62,12 @@ export default function Students() {
   const [form, setForm] = useState<StudentForm>(emptyForm);
 
   const filtered = students.filter((s) => {
+    const q = search.toLowerCase();
     const matchSearch =
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.guardianName.toLowerCase().includes(search.toLowerCase());
+      s.name.toLowerCase().includes(q) ||
+      s.guardianName.toLowerCase().includes(q) ||
+      s.contact.toLowerCase().includes(q) ||
+      s.studentCode.toLowerCase().includes(q);
     const matchClass = filterClass === "all" || s.classGrade === filterClass;
     return matchSearch && matchClass;
   });
@@ -222,7 +225,7 @@ export default function Students() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search students..."
+            placeholder="Search by name, code, guardian or phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
