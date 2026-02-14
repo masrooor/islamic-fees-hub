@@ -1,0 +1,1 @@
+ALTER TABLE public.payments ADD COLUMN fee_month text NOT NULL DEFAULT '';

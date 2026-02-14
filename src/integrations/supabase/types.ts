@@ -43,6 +43,7 @@ export type Database = {
           amount_paid: number
           created_at: string
           date: string
+          fee_month: string
           fee_type: string
           id: string
           notes: string
@@ -53,6 +54,7 @@ export type Database = {
           amount_paid?: number
           created_at?: string
           date?: string
+          fee_month?: string
           fee_type: string
           id?: string
           notes?: string
@@ -63,6 +65,7 @@ export type Database = {
           amount_paid?: number
           created_at?: string
           date?: string
+          fee_month?: string
           fee_type?: string
           id?: string
           notes?: string
