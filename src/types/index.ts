@@ -1,5 +1,6 @@
 export interface Student {
   id: string;
+  studentCode: string;
   name: string;
   guardianName: string;
   contact: string;
