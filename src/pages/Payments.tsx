@@ -28,7 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Download } from "lucide-react";
+import { Plus, Download, FileText } from "lucide-react";
 import { downloadCSV } from "@/lib/exportCsv";
 import { format } from "date-fns";
 
@@ -65,6 +65,72 @@ export default function Payments() {
 
   const getStudentName = (id: string) =>
     students.find((s) => s.id === id)?.name ?? "Unknown";
+  const getStudent = (id: string) => students.find((s) => s.id === id);
+
+  const generateFeeSlip = (paymentId: string) => {
+    const payment = payments.find((p) => p.id === paymentId);
+    if (!payment) return;
+    const student = getStudent(payment.studentId);
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head><title>Fee Slip - ${payment.receiptNumber}</title>
+        <style>
+          body { font-family: system-ui, sans-serif; padding: 40px; max-width: 600px; margin: auto; color: #1a1a1a; }
+          .header { text-align: center; border-bottom: 3px solid #1a6b4a; padding-bottom: 16px; margin-bottom: 28px; }
+          .header h1 { color: #1a6b4a; margin: 0; font-size: 24px; }
+          .header p { color: #666; margin: 4px 0 0; font-size: 13px; }
+          .header .slip-title { font-size: 16px; font-weight: 700; margin-top: 8px; color: #333; text-transform: uppercase; letter-spacing: 2px; }
+          .section { margin-bottom: 20px; }
+          .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-bottom: 8px; font-weight: 600; }
+          .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+          .label { color: #666; font-size: 14px; }
+          .value { font-weight: 600; font-size: 14px; }
+          .amount-row { background: #f0faf5; padding: 12px; border-radius: 8px; margin-top: 12px; }
+          .amount-row .value { font-size: 22px; color: #1a6b4a; }
+          .footer { text-align: center; margin-top: 40px; padding-top: 16px; border-top: 1px solid #eee; color: #999; font-size: 11px; }
+          .stamp { text-align: right; margin-top: 40px; }
+          .stamp-line { display: inline-block; width: 200px; border-top: 1px solid #333; padding-top: 4px; font-size: 12px; color: #666; text-align: center; }
+          @media print { body { padding: 20px; } }
+        </style></head>
+        <body>
+          <div class="header">
+            <h1>☪ Islamic Education Center</h1>
+            <p>Fee Payment Slip</p>
+            <div class="slip-title">Fee Slip</div>
+          </div>
+          <div class="section">
+            <div class="section-title">Student Information</div>
+            <div class="row"><span class="label">Student Name</span><span class="value">${student?.name ?? "Unknown"}</span></div>
+            <div class="row"><span class="label">Student Code</span><span class="value">${student?.studentCode ?? "—"}</span></div>
+            <div class="row"><span class="label">Class / Grade</span><span class="value">${student?.classGrade ?? "—"}</span></div>
+            <div class="row"><span class="label">Guardian</span><span class="value">${student?.guardianName ?? "—"}</span></div>
+          </div>
+          <div class="section">
+            <div class="section-title">Payment Details</div>
+            <div class="row"><span class="label">Receipt #</span><span class="value">${payment.receiptNumber}</span></div>
+            <div class="row"><span class="label">Payment Date</span><span class="value">${payment.date}</span></div>
+            <div class="row"><span class="label">Fee Month</span><span class="value">${payment.feeMonth || "—"}</span></div>
+            <div class="row"><span class="label">Fee Type</span><span class="value" style="text-transform:capitalize">${payment.feeType}</span></div>
+            ${payment.notes ? `<div class="row"><span class="label">Notes</span><span class="value">${payment.notes}</span></div>` : ""}
+            <div class="row amount-row"><span class="label" style="font-size:16px">Amount Paid</span><span class="value">$${payment.amountPaid.toLocaleString()}</span></div>
+          </div>
+          <div class="stamp">
+            <span class="stamp-line">Authorized Signature</span>
+          </div>
+          <div class="footer">
+            Thank you for your payment. May Allah bless you.<br/>
+            Generated on ${new Date().toLocaleDateString()}
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
 
   const sortedPayments = [...payments].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -205,13 +271,14 @@ export default function Payments() {
                 <TableHead>Fee Type</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Receipt #</TableHead>
+                <TableHead className="text-right">Slip</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedPayments.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center py-8 text-muted-foreground"
                   >
                     No payments recorded yet.
@@ -233,6 +300,16 @@ export default function Payments() {
                     <TableCell>${p.amountPaid.toLocaleString()}</TableCell>
                     <TableCell className="text-muted-foreground text-xs">
                       {p.receiptNumber}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => generateFeeSlip(p.id)}
+                        title="Generate Fee Slip"
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
