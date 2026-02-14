@@ -1,13 +1,14 @@
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard,
   Users,
   CreditCard,
   Receipt,
   DollarSign,
-  Menu,
+  LogOut,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -31,6 +32,7 @@ const navItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const { signOut, user } = useAuth();
 
   return (
     <Sidebar collapsible="icon">
@@ -73,6 +75,22 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <div className="mt-auto border-t border-sidebar-border p-3">
+        {!collapsed && user && (
+          <p className="text-xs text-sidebar-foreground/60 truncate mb-2 px-1">
+            {user.email}
+          </p>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+          onClick={signOut}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          {!collapsed && "Sign Out"}
+        </Button>
+      </div>
     </Sidebar>
   );
 }
