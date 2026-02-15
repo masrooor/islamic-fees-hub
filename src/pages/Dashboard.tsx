@@ -25,6 +25,12 @@ export default function Dashboard() {
   const activeStudents = students.filter((s) => s.status === "active");
   const totalRevenue = payments.reduce((sum, p) => sum + p.amountPaid, 0);
 
+  const currentMonth = format(new Date(), "yyyy-MM");
+  const studentsPaidThisMonth = new Set(
+    payments.filter((p) => p.feeMonth === currentMonth).map((p) => p.studentId)
+  );
+  const pendingStudents = activeStudents.filter((s) => !studentsPaidThisMonth.has(s.id));
+
   const todayStr = format(new Date(), "yyyy-MM-dd");
   const todayPayments = payments.filter((p) => p.date === todayStr);
   const todayCollection = todayPayments.reduce((s, p) => s + p.amountPaid, 0);
@@ -56,7 +62,7 @@ export default function Dashboard() {
   const summaryCards = [
     { title: "Total Students", value: activeStudents.length, icon: Users, color: "text-primary" },
     { title: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign, color: "text-primary" },
-    { title: "Pending Fees", value: "—", icon: AlertCircle, color: "text-destructive" },
+    { title: "Pending Fees", value: `${pendingStudents.length} student${pendingStudents.length !== 1 ? "s" : ""}`, icon: AlertCircle, color: "text-destructive" },
     { title: "Today's Collection", value: `$${todayCollection.toLocaleString()}`, icon: TrendingUp, color: "text-primary" },
   ];
 
