@@ -7,6 +7,11 @@ import {
   Receipt,
   DollarSign,
   LogOut,
+  GraduationCap,
+  Wallet,
+  HandCoins,
+  Clock,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,12 +26,23 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const navItems = [
+const studentNav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Students", url: "/students", icon: Users },
   { title: "Fee Structure", url: "/fees", icon: DollarSign },
   { title: "Payments", url: "/payments", icon: CreditCard },
   { title: "Receipts", url: "/receipts", icon: Receipt },
+];
+
+const teacherNav = [
+  { title: "Teachers", url: "/teachers", icon: GraduationCap },
+  { title: "Salaries", url: "/teacher-salaries", icon: Wallet },
+  { title: "Loans", url: "/teacher-loans", icon: HandCoins },
+  { title: "Attendance", url: "/teacher-attendance", icon: Clock },
+];
+
+const adminNav = [
+  { title: "Role Management", url: "/roles", icon: Shield },
 ];
 
 export function AppSidebar() {
@@ -53,20 +69,46 @@ export function AppSidebar() {
       </div>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Students</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
+              {studentNav.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/"}
-                      className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                    <NavLink to={item.url} end={item.url === "/"} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-primary font-medium">
+                      <item.icon className="h-4 w-4" /><span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Teachers</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {teacherNav.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <NavLink to={item.url} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-primary font-medium">
+                      <item.icon className="h-4 w-4" /><span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adminNav.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <NavLink to={item.url} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-primary font-medium">
+                      <item.icon className="h-4 w-4" /><span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

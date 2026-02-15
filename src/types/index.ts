@@ -27,6 +27,47 @@ export interface Payment {
   notes: string;
 }
 
+export interface Teacher {
+  id: string;
+  name: string;
+  contact: string;
+  cnic: string;
+  joiningDate: string;
+  status: "active" | "inactive";
+  monthlySalary: number;
+}
+
+export interface TeacherLoan {
+  id: string;
+  teacherId: string;
+  amount: number;
+  remaining: number;
+  dateIssued: string;
+  notes: string;
+  status: "active" | "paid";
+}
+
+export interface TeacherSalary {
+  id: string;
+  teacherId: string;
+  month: string;
+  baseSalary: number;
+  loanDeduction: number;
+  otherDeduction: number;
+  netPaid: number;
+  datePaid: string;
+  notes: string;
+}
+
+export interface TeacherAttendance {
+  id: string;
+  teacherId: string;
+  date: string;
+  timeIn: string | null;
+  timeOut: string | null;
+  notes: string;
+}
+
 export const CLASS_GRADES = [
   "Grade 1",
   "Grade 2",
