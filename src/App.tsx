@@ -10,6 +10,11 @@ import Students from "@/pages/Students";
 import FeeStructure from "@/pages/FeeStructure";
 import Payments from "@/pages/Payments";
 import Receipts from "@/pages/Receipts";
+import Teachers from "@/pages/Teachers";
+import TeacherSalaries from "@/pages/TeacherSalaries";
+import TeacherLoans from "@/pages/TeacherLoans";
+import TeacherAttendance from "@/pages/TeacherAttendance";
+import RoleManagement from "@/pages/RoleManagement";
 import Login from "@/pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -49,6 +54,11 @@ function ProtectedRoutes() {
         <Route path="/fees" element={<FeeStructure />} />
         <Route path="/payments" element={<Payments />} />
         <Route path="/receipts" element={<Receipts />} />
+        <Route path="/teachers" element={<Teachers />} />
+        <Route path="/teacher-salaries" element={<TeacherSalaries />} />
+        <Route path="/teacher-loans" element={<TeacherLoans />} />
+        <Route path="/teacher-attendance" element={<TeacherAttendance />} />
+        <Route path="/roles" element={<RoleManagement />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

@@ -118,6 +118,165 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_attendance: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          notes: string
+          teacher_id: string
+          time_in: string | null
+          time_out: string | null
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string
+          teacher_id: string
+          time_in?: string | null
+          time_out?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string
+          teacher_id?: string
+          time_in?: string | null
+          time_out?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_attendance_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_loans: {
+        Row: {
+          amount: number
+          created_at: string
+          date_issued: string
+          id: string
+          notes: string
+          remaining: number
+          status: string
+          teacher_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          date_issued?: string
+          id?: string
+          notes?: string
+          remaining?: number
+          status?: string
+          teacher_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date_issued?: string
+          id?: string
+          notes?: string
+          remaining?: number
+          status?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_loans_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_salaries: {
+        Row: {
+          base_salary: number
+          created_at: string
+          date_paid: string
+          id: string
+          loan_deduction: number
+          month: string
+          net_paid: number
+          notes: string
+          other_deduction: number
+          teacher_id: string
+        }
+        Insert: {
+          base_salary?: number
+          created_at?: string
+          date_paid?: string
+          id?: string
+          loan_deduction?: number
+          month: string
+          net_paid?: number
+          notes?: string
+          other_deduction?: number
+          teacher_id: string
+        }
+        Update: {
+          base_salary?: number
+          created_at?: string
+          date_paid?: string
+          id?: string
+          loan_deduction?: number
+          month?: string
+          net_paid?: number
+          notes?: string
+          other_deduction?: number
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_salaries_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teachers: {
+        Row: {
+          cnic: string
+          contact: string
+          created_at: string
+          id: string
+          joining_date: string
+          monthly_salary: number
+          name: string
+          status: string
+        }
+        Insert: {
+          cnic?: string
+          contact?: string
+          created_at?: string
+          id?: string
+          joining_date?: string
+          monthly_salary?: number
+          name: string
+          status?: string
+        }
+        Update: {
+          cnic?: string
+          contact?: string
+          created_at?: string
+          id?: string
+          joining_date?: string
+          monthly_salary?: number
+          name?: string
+          status?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -151,7 +310,7 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "manager"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -279,7 +438,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "manager"],
     },
   },
 } as const
