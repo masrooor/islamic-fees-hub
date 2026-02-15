@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatPKR } from "@/lib/currency";
 
 export default function TeacherSalaries() {
   const { teachers } = useTeachers();
@@ -74,14 +75,14 @@ export default function TeacherSalaries() {
               <div><Label>Date Paid</Label><Input type="date" value={form.datePaid} onChange={(e) => setForm({ ...form, datePaid: e.target.value })} /></div>
               {selectedTeacher && (
                 <div className="bg-muted p-3 rounded-md text-sm space-y-1">
-                  <p>Base Salary: <strong>${baseSalary.toLocaleString()}</strong></p>
-                  <p>Loan Deduction (10%): <strong className="text-destructive">-${loanDeduction.toLocaleString()}</strong></p>
-                  <p className="text-xs text-muted-foreground">Outstanding loans: ${totalLoanRemaining.toLocaleString()}</p>
+                  <p>Base Salary: <strong>{formatPKR(baseSalary)}</strong></p>
+                  <p>Loan Deduction (10%): <strong className="text-destructive">-{formatPKR(loanDeduction)}</strong></p>
+                  <p className="text-xs text-muted-foreground">Outstanding loans: {formatPKR(totalLoanRemaining)}</p>
                 </div>
               )}
               <div><Label>Other Deduction</Label><Input type="number" value={form.otherDeduction} onChange={(e) => setForm({ ...form, otherDeduction: Number(e.target.value) })} /></div>
               <div><Label>Notes</Label><Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
-              {selectedTeacher && <p className="text-sm font-semibold">Net Pay: <span className="text-primary">${netPaid.toLocaleString()}</span></p>}
+              {selectedTeacher && <p className="text-sm font-semibold">Net Pay: <span className="text-primary">{formatPKR(netPaid)}</span></p>}
               <Button className="w-full" onClick={handleSubmit}>Record Payment</Button>
             </div>
           </DialogContent>
@@ -101,10 +102,10 @@ export default function TeacherSalaries() {
                   <TableRow key={s.id}>
                     <TableCell className="font-medium">{getTeacherName(s.teacherId)}</TableCell>
                     <TableCell>{s.month}</TableCell>
-                    <TableCell>${s.baseSalary.toLocaleString()}</TableCell>
-                    <TableCell className="text-destructive">-${s.loanDeduction.toLocaleString()}</TableCell>
-                    <TableCell className="text-destructive">-${s.otherDeduction.toLocaleString()}</TableCell>
-                    <TableCell className="font-semibold text-primary">${s.netPaid.toLocaleString()}</TableCell>
+                    <TableCell>{formatPKR(s.baseSalary)}</TableCell>
+                    <TableCell className="text-destructive">-{formatPKR(s.loanDeduction)}</TableCell>
+                    <TableCell className="text-destructive">-{formatPKR(s.otherDeduction)}</TableCell>
+                    <TableCell className="font-semibold text-primary">{formatPKR(s.netPaid)}</TableCell>
                     <TableCell>{s.datePaid}</TableCell>
                   </TableRow>
                 ))}

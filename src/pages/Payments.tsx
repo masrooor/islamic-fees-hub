@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Download, FileText } from "lucide-react";
 import { downloadCSV } from "@/lib/exportCsv";
 import { format } from "date-fns";
+import { formatPKR } from "@/lib/currency";
 
 export default function Payments() {
   const { students } = useStudents();
@@ -116,7 +117,7 @@ export default function Payments() {
             <div class="row"><span class="label">Fee Month</span><span class="value">${payment.feeMonth || "—"}</span></div>
             <div class="row"><span class="label">Fee Type</span><span class="value" style="text-transform:capitalize">${payment.feeType}</span></div>
             ${payment.notes ? `<div class="row"><span class="label">Notes</span><span class="value">${payment.notes}</span></div>` : ""}
-            <div class="row amount-row"><span class="label" style="font-size:16px">Amount Paid</span><span class="value">$${payment.amountPaid.toLocaleString()}</span></div>
+            <div class="row amount-row"><span class="label" style="font-size:16px">Amount Paid</span><span class="value">Rs. ${payment.amountPaid.toLocaleString()}</span></div>
           </div>
           <div class="stamp">
             <span class="stamp-line">Authorized Signature</span>
@@ -214,7 +215,7 @@ export default function Payments() {
                 </Select>
               </div>
               <div>
-                <Label>Amount ($) *</Label>
+                <Label>Amount (PKR) *</Label>
                 <Input
                   type="number"
                   min={0}
@@ -297,7 +298,7 @@ export default function Payments() {
                         {p.feeType}
                       </Badge>
                     </TableCell>
-                    <TableCell>${p.amountPaid.toLocaleString()}</TableCell>
+                    <TableCell>{formatPKR(p.amountPaid)}</TableCell>
                     <TableCell className="text-muted-foreground text-xs">
                       {p.receiptNumber}
                     </TableCell>

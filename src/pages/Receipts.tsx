@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Printer } from "lucide-react";
+import { formatPKR } from "@/lib/currency";
 
 export default function Receipts() {
   const { students } = useStudents();
@@ -62,7 +63,7 @@ export default function Receipts() {
             <div class="row"><span class="label">Student</span><span class="value">${student?.name ?? "Unknown"}</span></div>
             <div class="row"><span class="label">Class</span><span class="value">${student?.classGrade ?? "—"}</span></div>
             <div class="row"><span class="label">Fee Type</span><span class="value" style="text-transform:capitalize">${payment.feeType}</span></div>
-            <div class="row"><span class="label">Amount Paid</span><span class="value total">$${payment.amountPaid.toLocaleString()}</span></div>
+            <div class="row"><span class="label">Amount Paid</span><span class="value total">Rs. ${payment.amountPaid.toLocaleString()}</span></div>
             ${payment.notes ? `<div class="row"><span class="label">Notes</span><span class="value">${payment.notes}</span></div>` : ""}
           </div>
           <div class="footer">Thank you for your payment. May Allah bless you.</div>
@@ -119,7 +120,7 @@ export default function Receipts() {
                         {p.feeType}
                       </Badge>
                     </TableCell>
-                    <TableCell>${p.amountPaid.toLocaleString()}</TableCell>
+                    <TableCell>{formatPKR(p.amountPaid)}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         size="icon"
