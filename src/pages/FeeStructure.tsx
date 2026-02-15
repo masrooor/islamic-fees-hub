@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useFeeStructures } from "@/store/useStore";
 import { CLASS_GRADES } from "@/types";
+import { formatPKR } from "@/lib/currency";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,7 +118,7 @@ export default function FeeStructurePage() {
                 </Select>
               </div>
               <div>
-                <Label>Amount ($) *</Label>
+                <Label>Amount (PKR) *</Label>
                 <Input
                   type="number"
                   min={0}
@@ -163,7 +164,7 @@ export default function FeeStructurePage() {
                         {f.feeType}
                       </Badge>
                     </TableCell>
-                    <TableCell>${f.amount.toLocaleString()}</TableCell>
+                    <TableCell>{formatPKR(f.amount)}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         size="icon"

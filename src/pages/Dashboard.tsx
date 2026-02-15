@@ -12,6 +12,7 @@ import { useStudents, usePayments, useFeeStructures } from "@/store/useStore";
 import { Users, DollarSign, AlertCircle, TrendingUp, Plus, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { formatPKR } from "@/lib/currency";
 
 const chartConfig: ChartConfig = {
   revenue: { label: "Revenue", color: "hsl(160 45% 32%)" },
@@ -61,9 +62,9 @@ export default function Dashboard() {
 
   const summaryCards = [
     { title: "Total Students", value: activeStudents.length, icon: Users, color: "text-primary" },
-    { title: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign, color: "text-primary" },
+    { title: "Total Revenue", value: formatPKR(totalRevenue), icon: DollarSign, color: "text-primary" },
     { title: "Pending Fees", value: `${pendingStudents.length} student${pendingStudents.length !== 1 ? "s" : ""}`, icon: AlertCircle, color: "text-destructive" },
-    { title: "Today's Collection", value: `$${todayCollection.toLocaleString()}`, icon: TrendingUp, color: "text-primary" },
+    { title: "Today's Collection", value: formatPKR(todayCollection), icon: TrendingUp, color: "text-primary" },
   ];
 
   return (
@@ -143,7 +144,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <span className="text-sm font-semibold text-primary">
-                      ${p.amountPaid.toLocaleString()}
+                      {formatPKR(p.amountPaid)}
                     </span>
                   </div>
                 ))}

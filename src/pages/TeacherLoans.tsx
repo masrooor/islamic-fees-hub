@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatPKR } from "@/lib/currency";
 
 export default function TeacherLoans() {
   const { teachers } = useTeachers();
@@ -69,8 +70,8 @@ export default function TeacherLoans() {
                 {loans.map((l) => (
                   <TableRow key={l.id}>
                     <TableCell className="font-medium">{getTeacherName(l.teacherId)}</TableCell>
-                    <TableCell>${l.amount.toLocaleString()}</TableCell>
-                    <TableCell className={l.remaining > 0 ? "text-destructive font-semibold" : "text-primary"}>${l.remaining.toLocaleString()}</TableCell>
+                    <TableCell>{formatPKR(l.amount)}</TableCell>
+                    <TableCell className={l.remaining > 0 ? "text-destructive font-semibold" : "text-primary"}>{formatPKR(l.remaining)}</TableCell>
                     <TableCell>{l.dateIssued}</TableCell>
                     <TableCell><Badge variant={l.status === "active" ? "destructive" : "default"}>{l.status}</Badge></TableCell>
                     <TableCell className="text-muted-foreground">{l.notes}</TableCell>
