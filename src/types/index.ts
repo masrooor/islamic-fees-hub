@@ -25,6 +25,8 @@ export interface Payment {
   feeMonth: string;
   receiptNumber: string;
   notes: string;
+  collectedBy: string | null;
+  paymentMode: string;
 }
 
 export interface Teacher {
