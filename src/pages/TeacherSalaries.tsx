@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, AlertCircle, Upload } from "lucide-react";
+import { Plus, AlertCircle, Upload, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatPKR } from "@/lib/currency";
@@ -98,6 +98,70 @@ export default function TeacherSalaries() {
   };
 
   const getTeacherName = (id: string) => teachers.find((t) => t.id === id)?.name ?? "Unknown";
+
+  const printSalarySlip = (salaryId: string) => {
+    const s = salaries.find((sal) => sal.id === salaryId);
+    if (!s) return;
+    const teacher = teachers.find((t) => t.id === s.teacherId);
+    const win = window.open("", "_blank", "width=600,height=700");
+    if (!win) return;
+    win.document.write(`
+      <html><head><title>Salary Slip</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px; color: #1a1a1a; }
+        .header { text-align: center; border-bottom: 3px double #333; padding-bottom: 15px; margin-bottom: 20px; }
+        .header h1 { font-size: 22px; margin-bottom: 4px; }
+        .header p { font-size: 12px; color: #666; }
+        .slip-title { text-align: center; font-size: 16px; font-weight: bold; background: #f0f0f0; padding: 8px; margin-bottom: 20px; border-radius: 4px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; margin-bottom: 20px; font-size: 13px; }
+        .info-grid .label { color: #666; }
+        .info-grid .value { font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; font-size: 13px; }
+        th { background: #f5f5f5; font-weight: 600; }
+        .amount { text-align: right; }
+        .deduction { color: #dc2626; }
+        .net-row { background: #f0fdf4; font-weight: bold; }
+        .net-row .amount { color: #16a34a; font-size: 15px; }
+        .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 12px; }
+        .sig-line { border-top: 1px solid #333; padding-top: 5px; width: 150px; text-align: center; }
+        .print-date { text-align: center; font-size: 11px; color: #999; margin-top: 30px; }
+        @media print { body { padding: 15px; } }
+      </style></head><body>
+      <div class="header">
+        <h1>Salary Slip</h1>
+        <p>Payment Receipt</p>
+      </div>
+      <div class="slip-title">Month: ${s.month}</div>
+      <div class="info-grid">
+        <span class="label">Teacher Name:</span><span class="value">${teacher?.name ?? "Unknown"}</span>
+        <span class="label">CNIC:</span><span class="value">${teacher?.cnic ?? "—"}</span>
+        <span class="label">Contact:</span><span class="value">${teacher?.contact ?? "—"}</span>
+        <span class="label">Date Paid:</span><span class="value">${s.datePaid}</span>
+        <span class="label">Payment Mode:</span><span class="value">${s.paymentMode === "online" ? "Online" : "Cash"}</span>
+        <span class="label">Joining Date:</span><span class="value">${teacher?.joiningDate ?? "—"}</span>
+      </div>
+      <table>
+        <thead><tr><th>Description</th><th class="amount">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>Base Salary${s.customAmount > 0 ? " (Custom)" : ""}</td><td class="amount">${formatPKR(s.baseSalary)}</td></tr>
+          <tr><td>Loan Deduction</td><td class="amount deduction">-${formatPKR(s.loanDeduction)}</td></tr>
+          <tr><td>Other Deduction</td><td class="amount deduction">-${formatPKR(s.otherDeduction)}</td></tr>
+          <tr class="net-row"><td><strong>Net Pay</strong></td><td class="amount">${formatPKR(s.netPaid)}</td></tr>
+        </tbody>
+      </table>
+      ${s.notes ? `<p style="font-size:12px;color:#666;margin-bottom:20px;"><strong>Notes:</strong> ${s.notes}</p>` : ""}
+      <div class="footer">
+        <div class="sig-line">Teacher Signature</div>
+        <div class="sig-line">Authorized Signature</div>
+      </div>
+      <p class="print-date">Printed on: ${format(new Date(), "yyyy-MM-dd HH:mm")}</p>
+      </body></html>
+    `);
+    win.document.close();
+    win.print();
+  };
 
   return (
     <div className="space-y-6">
@@ -255,7 +319,7 @@ export default function TeacherSalaries() {
             return filtered.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No salary payments found.</p> : (
               <Table>
                 <TableHeader><TableRow>
-                  <TableHead>Teacher</TableHead><TableHead>Month</TableHead><TableHead>Base</TableHead><TableHead>Loan Ded.</TableHead><TableHead>Other Ded.</TableHead><TableHead>Net Paid</TableHead><TableHead>Mode</TableHead><TableHead>Date</TableHead>
+                  <TableHead>Teacher</TableHead><TableHead>Month</TableHead><TableHead>Base</TableHead><TableHead>Loan Ded.</TableHead><TableHead>Other Ded.</TableHead><TableHead>Net Paid</TableHead><TableHead>Mode</TableHead><TableHead>Date</TableHead><TableHead></TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
                   {filtered.map((s) => (
@@ -275,6 +339,11 @@ export default function TeacherSalaries() {
                         )}
                       </TableCell>
                       <TableCell>{s.datePaid}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" onClick={() => printSalarySlip(s.id)} title="Print Slip">
+                          <Printer className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
