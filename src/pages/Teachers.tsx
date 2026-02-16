@@ -20,6 +20,8 @@ export default function Teachers() {
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   const handleSubmit = async () => {
     if (!form.name) { toast.error("Name is required"); return; }
@@ -78,30 +80,53 @@ export default function Teachers() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-lg">All Teachers</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-lg">All Teachers</CardTitle>
+          <div className="flex flex-wrap gap-3 mt-3">
+            <Input placeholder="Search by name, contact, CNIC..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-[250px]" />
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[150px]"><SelectValue placeholder="All Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+            {(searchQuery || filterStatus !== "all") && (
+              <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(""); setFilterStatus("all"); }}>Clear</Button>
+            )}
+          </div>
+        </CardHeader>
         <CardContent>
-          {loading ? <p className="text-sm text-muted-foreground text-center py-8">Loading...</p> : teachers.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No teachers added yet.</p> : (
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>Name</TableHead><TableHead>Contact</TableHead><TableHead>CNIC</TableHead><TableHead>Salary</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {teachers.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell className="font-medium">{t.name}</TableCell>
-                    <TableCell>{t.contact}</TableCell>
-                    <TableCell>{t.cnic}</TableCell>
-                    <TableCell>{formatPKR(t.monthlySalary)}</TableCell>
-                    <TableCell><Badge variant={t.status === "active" ? "default" : "secondary"}>{t.status}</Badge></TableCell>
-                    <TableCell className="text-right space-x-1">
-                      <Button size="icon" variant="ghost" onClick={() => startEdit(t)}><Pencil className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" onClick={() => handleDelete(t.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          {loading ? <p className="text-sm text-muted-foreground text-center py-8">Loading...</p> : (() => {
+            const q = searchQuery.toLowerCase();
+            const filtered = teachers.filter((t) =>
+              (filterStatus === "all" || t.status === filterStatus) &&
+              (!q || t.name.toLowerCase().includes(q) || t.contact.toLowerCase().includes(q) || t.cnic.toLowerCase().includes(q))
+            );
+            return filtered.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No teachers found.</p> : (
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Name</TableHead><TableHead>Contact</TableHead><TableHead>CNIC</TableHead><TableHead>Salary</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {filtered.map((t) => (
+                    <TableRow key={t.id}>
+                      <TableCell className="font-medium">{t.name}</TableCell>
+                      <TableCell>{t.contact}</TableCell>
+                      <TableCell>{t.cnic}</TableCell>
+                      <TableCell>{formatPKR(t.monthlySalary)}</TableCell>
+                      <TableCell><Badge variant={t.status === "active" ? "default" : "secondary"}>{t.status}</Badge></TableCell>
+                      <TableCell className="text-right space-x-1">
+                        <Button size="icon" variant="ghost" onClick={() => startEdit(t)}><Pencil className="h-4 w-4" /></Button>
+                        <Button size="icon" variant="ghost" onClick={() => handleDelete(t.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            );
+          })()}
         </CardContent>
       </Card>
     </div>
