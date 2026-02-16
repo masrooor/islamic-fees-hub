@@ -36,6 +36,14 @@ export default function Dashboard() {
   const todayPayments = payments.filter((p) => p.date === todayStr);
   const todayCollection = todayPayments.reduce((s, p) => s + p.amountPaid, 0);
 
+  const currentYear = new Date().getFullYear().toString();
+  const monthlyCollection = payments
+    .filter((p) => p.feeMonth === currentMonth)
+    .reduce((s, p) => s + p.amountPaid, 0);
+  const yearlyCollection = payments
+    .filter((p) => p.date.startsWith(currentYear))
+    .reduce((s, p) => s + p.amountPaid, 0);
+
   const recentPayments = useMemo(
     () =>
       [...payments]
@@ -62,9 +70,10 @@ export default function Dashboard() {
 
   const summaryCards = [
     { title: "Total Students", value: activeStudents.length, icon: Users, color: "text-primary" },
-    { title: "Total Revenue", value: formatPKR(totalRevenue), icon: DollarSign, color: "text-primary" },
     { title: "Pending Fees", value: `${pendingStudents.length} student${pendingStudents.length !== 1 ? "s" : ""}`, icon: AlertCircle, color: "text-destructive" },
     { title: "Today's Collection", value: formatPKR(todayCollection), icon: TrendingUp, color: "text-primary" },
+    { title: "This Month", value: formatPKR(monthlyCollection), icon: CreditCard, color: "text-primary" },
+    { title: "This Year", value: formatPKR(yearlyCollection), icon: DollarSign, color: "text-primary" },
   ];
 
   return (
@@ -88,7 +97,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {summaryCards.map((card) => (
           <Card key={card.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
