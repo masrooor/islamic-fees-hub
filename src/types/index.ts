@@ -59,6 +59,9 @@ export interface TeacherSalary {
   netPaid: number;
   datePaid: string;
   notes: string;
+  paymentMode: "cash" | "online";
+  receiptUrl: string;
+  customAmount: number;
 }
 
 export interface TeacherAttendance {
