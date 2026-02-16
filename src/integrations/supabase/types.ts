@@ -207,6 +207,7 @@ export type Database = {
         Row: {
           base_salary: number
           created_at: string
+          custom_amount: number
           date_paid: string
           id: string
           loan_deduction: number
@@ -214,11 +215,14 @@ export type Database = {
           net_paid: number
           notes: string
           other_deduction: number
+          payment_mode: string
+          receipt_url: string
           teacher_id: string
         }
         Insert: {
           base_salary?: number
           created_at?: string
+          custom_amount?: number
           date_paid?: string
           id?: string
           loan_deduction?: number
@@ -226,11 +230,14 @@ export type Database = {
           net_paid?: number
           notes?: string
           other_deduction?: number
+          payment_mode?: string
+          receipt_url?: string
           teacher_id: string
         }
         Update: {
           base_salary?: number
           created_at?: string
+          custom_amount?: number
           date_paid?: string
           id?: string
           loan_deduction?: number
@@ -238,6 +245,8 @@ export type Database = {
           net_paid?: number
           notes?: string
           other_deduction?: number
+          payment_mode?: string
+          receipt_url?: string
           teacher_id?: string
         }
         Relationships: [

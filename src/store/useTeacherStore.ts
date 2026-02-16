@@ -105,6 +105,9 @@ export function useTeacherSalaries() {
         baseSalary: Number(s.base_salary), loanDeduction: Number(s.loan_deduction),
         otherDeduction: Number(s.other_deduction), netPaid: Number(s.net_paid),
         datePaid: s.date_paid, notes: s.notes,
+        paymentMode: s.payment_mode || "cash",
+        receiptUrl: s.receipt_url || "",
+        customAmount: Number(s.custom_amount || 0),
       })));
     }
     setLoading(false);
@@ -117,6 +120,9 @@ export function useTeacherSalaries() {
       teacher_id: salary.teacherId, month: salary.month, base_salary: salary.baseSalary,
       loan_deduction: salary.loanDeduction, other_deduction: salary.otherDeduction,
       net_paid: salary.netPaid, date_paid: salary.datePaid, notes: salary.notes,
+      payment_mode: salary.paymentMode || "cash",
+      receipt_url: salary.receiptUrl || "",
+      custom_amount: salary.customAmount || 0,
     } as any);
     await fetchSalaries();
   }, [fetchSalaries]);
