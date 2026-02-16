@@ -28,7 +28,7 @@ export default function TeacherDashboard() {
   const { loans, addLoan } = useTeacherLoans();
 
   const [advanceOpen, setAdvanceOpen] = useState(false);
-  const [advanceForm, setAdvanceForm] = useState({ teacherId: "", amount: 0, notes: "" });
+  const [advanceForm, setAdvanceForm] = useState({ teacherId: "", amount: 0, notes: "", month: format(new Date(), "yyyy-MM"), paymentMode: "cash" as "cash" | "online" });
 
   const currentMonth = format(new Date(), "yyyy-MM");
   const currentYear = new Date().getFullYear().toString();
@@ -83,7 +83,7 @@ export default function TeacherDashboard() {
     });
     toast.success(`Advance of ${formatPKR(advanceForm.amount)} issued to ${teacher.name}`);
     setAdvanceOpen(false);
-    setAdvanceForm({ teacherId: "", amount: 0, notes: "" });
+    setAdvanceForm({ teacherId: "", amount: 0, notes: "", month: format(new Date(), "yyyy-MM"), paymentMode: "cash" });
   };
 
   const teacherCards = [
@@ -122,8 +122,22 @@ export default function TeacherDashboard() {
                 </Select>
               </div>
               <div>
+                <Label>Month</Label>
+                <Input type="month" value={advanceForm.month} onChange={(e) => setAdvanceForm({ ...advanceForm, month: e.target.value })} />
+              </div>
+              <div>
                 <Label>Amount</Label>
                 <Input type="number" value={advanceForm.amount} onChange={(e) => setAdvanceForm({ ...advanceForm, amount: Number(e.target.value) })} placeholder="Enter amount" />
+              </div>
+              <div>
+                <Label>Payment Mode</Label>
+                <Select value={advanceForm.paymentMode} onValueChange={(v) => setAdvanceForm({ ...advanceForm, paymentMode: v as "cash" | "online" })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="online">Online</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Notes</Label>
