@@ -20,6 +20,9 @@ export default function TeacherSalaries() {
   const { loans, updateLoan } = useTeacherLoans();
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [filterTeacher, setFilterTeacher] = useState("all");
+  const [filterMonth, setFilterMonth] = useState("all");
+  const [filterMode, setFilterMode] = useState("all");
   const [form, setForm] = useState({
     teacherId: "",
     month: format(new Date(), "yyyy-MM"),
@@ -210,36 +213,74 @@ export default function TeacherSalaries() {
       )}
 
       <Card>
-        <CardHeader><CardTitle className="text-lg">Salary History</CardTitle></CardHeader>
-        <CardContent>
-          {loading ? <p className="text-sm text-muted-foreground text-center py-8">Loading...</p> : salaries.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No salary payments recorded.</p> : (
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>Teacher</TableHead><TableHead>Month</TableHead><TableHead>Base</TableHead><TableHead>Loan Ded.</TableHead><TableHead>Other Ded.</TableHead><TableHead>Net Paid</TableHead><TableHead>Mode</TableHead><TableHead>Date</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {salaries.map((s) => (
-                  <TableRow key={s.id}>
-                    <TableCell className="font-medium">{getTeacherName(s.teacherId)}</TableCell>
-                    <TableCell>{s.month}</TableCell>
-                    <TableCell>{formatPKR(s.baseSalary)}{s.customAmount > 0 && <span className="text-xs text-muted-foreground ml-1">(custom)</span>}</TableCell>
-                    <TableCell className="text-destructive">-{formatPKR(s.loanDeduction)}</TableCell>
-                    <TableCell className="text-destructive">-{formatPKR(s.otherDeduction)}</TableCell>
-                    <TableCell className="font-semibold text-primary">{formatPKR(s.netPaid)}</TableCell>
-                    <TableCell>
-                      <Badge variant={s.paymentMode === "online" ? "default" : "secondary"}>
-                        {s.paymentMode}
-                      </Badge>
-                      {s.receiptUrl && (
-                        <a href={s.receiptUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary ml-1 underline">receipt</a>
-                      )}
-                    </TableCell>
-                    <TableCell>{s.datePaid}</TableCell>
-                  </TableRow>
+        <CardHeader>
+          <CardTitle className="text-lg">Salary History</CardTitle>
+          <div className="flex flex-wrap gap-3 mt-3">
+            <Select value={filterTeacher} onValueChange={setFilterTeacher}>
+              <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Teachers" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Teachers</SelectItem>
+                {teachers.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterMonth} onValueChange={setFilterMonth}>
+              <SelectTrigger className="w-[160px]"><SelectValue placeholder="All Months" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Months</SelectItem>
+                {[...new Set(salaries.map((s) => s.month))].sort().reverse().map((m) => (
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
                 ))}
-              </TableBody>
-            </Table>
-          )}
+              </SelectContent>
+            </Select>
+            <Select value={filterMode} onValueChange={setFilterMode}>
+              <SelectTrigger className="w-[140px]"><SelectValue placeholder="All Modes" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Modes</SelectItem>
+                <SelectItem value="cash">Cash</SelectItem>
+                <SelectItem value="online">Online</SelectItem>
+              </SelectContent>
+            </Select>
+            {(filterTeacher !== "all" || filterMonth !== "all" || filterMode !== "all") && (
+              <Button variant="ghost" size="sm" onClick={() => { setFilterTeacher("all"); setFilterMonth("all"); setFilterMode("all"); }}>Clear Filters</Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? <p className="text-sm text-muted-foreground text-center py-8">Loading...</p> : (() => {
+            const filtered = salaries.filter((s) =>
+              (filterTeacher === "all" || s.teacherId === filterTeacher) &&
+              (filterMonth === "all" || s.month === filterMonth) &&
+              (filterMode === "all" || s.paymentMode === filterMode)
+            );
+            return filtered.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No salary payments found.</p> : (
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Teacher</TableHead><TableHead>Month</TableHead><TableHead>Base</TableHead><TableHead>Loan Ded.</TableHead><TableHead>Other Ded.</TableHead><TableHead>Net Paid</TableHead><TableHead>Mode</TableHead><TableHead>Date</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {filtered.map((s) => (
+                    <TableRow key={s.id}>
+                      <TableCell className="font-medium">{getTeacherName(s.teacherId)}</TableCell>
+                      <TableCell>{s.month}</TableCell>
+                      <TableCell>{formatPKR(s.baseSalary)}{s.customAmount > 0 && <span className="text-xs text-muted-foreground ml-1">(custom)</span>}</TableCell>
+                      <TableCell className="text-destructive">-{formatPKR(s.loanDeduction)}</TableCell>
+                      <TableCell className="text-destructive">-{formatPKR(s.otherDeduction)}</TableCell>
+                      <TableCell className="font-semibold text-primary">{formatPKR(s.netPaid)}</TableCell>
+                      <TableCell>
+                        <Badge variant={s.paymentMode === "online" ? "default" : "secondary"}>
+                          {s.paymentMode}
+                        </Badge>
+                        {s.receiptUrl && (
+                          <a href={s.receiptUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary ml-1 underline">receipt</a>
+                        )}
+                      </TableCell>
+                      <TableCell>{s.datePaid}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            );
+          })()}
         </CardContent>
       </Card>
     </div>
