@@ -35,6 +35,7 @@ const studentNav = [
 ];
 
 const teacherNav = [
+  { title: "Dashboard", url: "/teacher-dashboard", icon: LayoutDashboard },
   { title: "Teachers", url: "/teachers", icon: GraduationCap },
   { title: "Salaries", url: "/teacher-salaries", icon: Wallet },
   { title: "Loans", url: "/teacher-loans", icon: HandCoins },

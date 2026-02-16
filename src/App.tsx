@@ -14,6 +14,7 @@ import Teachers from "@/pages/Teachers";
 import TeacherSalaries from "@/pages/TeacherSalaries";
 import TeacherLoans from "@/pages/TeacherLoans";
 import TeacherAttendance from "@/pages/TeacherAttendance";
+import TeacherDashboard from "@/pages/TeacherDashboard";
 import RoleManagement from "@/pages/RoleManagement";
 import Login from "@/pages/Login";
 import NotFound from "./pages/NotFound";
@@ -58,6 +59,7 @@ function ProtectedRoutes() {
         <Route path="/teacher-salaries" element={<TeacherSalaries />} />
         <Route path="/teacher-loans" element={<TeacherLoans />} />
         <Route path="/teacher-attendance" element={<TeacherAttendance />} />
+        <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
         <Route path="/roles" element={<RoleManagement />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
