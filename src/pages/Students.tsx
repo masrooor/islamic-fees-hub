@@ -212,6 +212,21 @@ export default function Students() {
                   }
                 />
               </div>
+              <div>
+                <Label>Status</Label>
+                <Select
+                  value={form.status}
+                  onValueChange={(v) => setForm({ ...form, status: v as "active" | "inactive" })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive (Left)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Button onClick={handleSubmit} className="w-full">
                 {editingId ? "Update" : "Add"} Student
               </Button>
