@@ -15,6 +15,7 @@ import TeacherSalaries from "@/pages/TeacherSalaries";
 import TeacherLoans from "@/pages/TeacherLoans";
 import TeacherAttendance from "@/pages/TeacherAttendance";
 import TeacherDashboard from "@/pages/TeacherDashboard";
+import TeacherDetail from "@/pages/TeacherDetail";
 import RoleManagement from "@/pages/RoleManagement";
 import Login from "@/pages/Login";
 import NotFound from "./pages/NotFound";
@@ -56,6 +57,7 @@ function ProtectedRoutes() {
         <Route path="/payments" element={<Payments />} />
         <Route path="/receipts" element={<Receipts />} />
         <Route path="/teachers" element={<Teachers />} />
+        <Route path="/teachers/:id" element={<TeacherDetail />} />
         <Route path="/teacher-salaries" element={<TeacherSalaries />} />
         <Route path="/teacher-loans" element={<TeacherLoans />} />
         <Route path="/teacher-attendance" element={<TeacherAttendance />} />
