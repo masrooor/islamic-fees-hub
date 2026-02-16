@@ -157,9 +157,11 @@ export function usePayments() {
           feeType: p.fee_type as "tuition" | "registration",
           amountPaid: Number(p.amount_paid),
           date: p.date,
-          feeMonth: (p as any).fee_month ?? "",
+          feeMonth: p.fee_month ?? "",
           receiptNumber: p.receipt_number,
           notes: p.notes,
+          collectedBy: p.collected_by,
+          paymentMode: p.payment_mode,
         }))
       );
     }
@@ -180,6 +182,8 @@ export function usePayments() {
         fee_month: payment.feeMonth,
         receipt_number: receiptNumber,
         notes: payment.notes,
+        collected_by: payment.collectedBy,
+        payment_mode: payment.paymentMode,
       })
       .select()
       .single();
@@ -191,9 +195,11 @@ export function usePayments() {
         feeType: data.fee_type as "tuition" | "registration",
         amountPaid: Number(data.amount_paid),
         date: data.date,
-        feeMonth: (data as any).fee_month ?? "",
+        feeMonth: data.fee_month ?? "",
         receiptNumber: data.receipt_number,
         notes: data.notes,
+        collectedBy: data.collected_by,
+        paymentMode: data.payment_mode,
       };
     }
     return null;

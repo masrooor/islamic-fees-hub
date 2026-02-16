@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useStudents, usePayments, useFeeStructures } from "@/store/useStore";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,7 @@ export default function Payments() {
   const { students } = useStudents();
   const { payments, addPayment } = usePayments();
   const { fees } = useFeeStructures();
+  const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
 
@@ -47,18 +49,23 @@ export default function Payments() {
     amountPaid: 0,
     date: format(new Date(), "yyyy-MM-dd"),
     feeMonth: currentMonth,
+    paymentMode: "cash",
     notes: "",
   });
 
   const handleSubmit = () => {
     if (!form.studentId || form.amountPaid <= 0) return;
-    addPayment(form);
+    addPayment({
+      ...form,
+      collectedBy: user?.id ?? null,
+    });
     setForm({
       studentId: "",
       feeType: "tuition",
       amountPaid: 0,
       date: format(new Date(), "yyyy-MM-dd"),
       feeMonth: currentMonth,
+      paymentMode: "cash",
       notes: "",
     });
     setDialogOpen(false);
@@ -245,6 +252,23 @@ export default function Payments() {
                 />
               </div>
               <div>
+                <Label>Payment Mode *</Label>
+                <Select
+                  value={form.paymentMode}
+                  onValueChange={(v) => setForm({ ...form, paymentMode: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                    <SelectItem value="online">Online</SelectItem>
+                    <SelectItem value="cheque">Cheque</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>Notes</Label>
                 <Textarea
                   value={form.notes}
@@ -270,8 +294,10 @@ export default function Payments() {
                 <TableHead>Fee Month</TableHead>
                 <TableHead>Student</TableHead>
                 <TableHead>Fee Type</TableHead>
+                <TableHead>Mode</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Receipt #</TableHead>
+                <TableHead>Collected By</TableHead>
                 <TableHead className="text-right">Slip</TableHead>
               </TableRow>
             </TableHeader>
@@ -279,7 +305,7 @@ export default function Payments() {
               {sortedPayments.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={9}
                     className="text-center py-8 text-muted-foreground"
                   >
                     No payments recorded yet.
@@ -298,9 +324,17 @@ export default function Payments() {
                         {p.feeType}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="capitalize">
+                        {p.paymentMode.replace("_", " ")}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{formatPKR(p.amountPaid)}</TableCell>
                     <TableCell className="text-muted-foreground text-xs">
                       {p.receiptNumber}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs">
+                      {p.collectedBy ? user?.email ?? "Admin" : "—"}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button

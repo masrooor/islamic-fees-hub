@@ -41,34 +41,40 @@ export type Database = {
       payments: {
         Row: {
           amount_paid: number
+          collected_by: string | null
           created_at: string
           date: string
           fee_month: string
           fee_type: string
           id: string
           notes: string
+          payment_mode: string
           receipt_number: string
           student_id: string
         }
         Insert: {
           amount_paid?: number
+          collected_by?: string | null
           created_at?: string
           date?: string
           fee_month?: string
           fee_type: string
           id?: string
           notes?: string
+          payment_mode?: string
           receipt_number?: string
           student_id: string
         }
         Update: {
           amount_paid?: number
+          collected_by?: string | null
           created_at?: string
           date?: string
           fee_month?: string
           fee_type?: string
           id?: string
           notes?: string
+          payment_mode?: string
           receipt_number?: string
           student_id?: string
         }
