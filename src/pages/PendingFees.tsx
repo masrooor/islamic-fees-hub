@@ -11,7 +11,8 @@ import { useStudents, usePayments, useFeeStructures } from "@/store/useStore";
 import { useAuth } from "@/hooks/useAuth";
 import { formatPKR } from "@/lib/currency";
 import { format, subMonths } from "date-fns";
-import { AlertCircle, CreditCard } from "lucide-react";
+import { AlertCircle, CreditCard, Download } from "lucide-react";
+import { downloadCSV } from "@/lib/exportCsv";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import type { Student } from "@/types";
@@ -121,6 +122,22 @@ export default function PendingFees() {
           <h1 className="text-2xl font-bold text-foreground">Pending Fees</h1>
           <p className="text-sm text-muted-foreground">Students with unpaid or partially paid fees</p>
         </div>
+        {pendingData.length > 0 && (
+          <Button variant="outline" size="sm" onClick={() => {
+            const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label ?? selectedMonth;
+            downloadCSV(
+              `pending-fees-${selectedMonth}.csv`,
+              ["Student", "Code", "Class", "Guardian", "Contact", "Expected", "Paid", "Pending", "Status"],
+              pendingData.map(({ student, expectedFee, paidAmount, pendingAmount, status }) => [
+                student.name, student.studentCode, student.classGrade, student.guardianName, student.contact,
+                String(expectedFee), String(paidAmount), String(pendingAmount), status === "partial" ? "Partial" : "Unpaid",
+              ])
+            );
+            toast.success(`Exported ${pendingData.length} records for ${monthLabel}`);
+          }}>
+            <Download className="h-4 w-4 mr-1" /> Export CSV
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-4 items-end">
