@@ -33,6 +33,7 @@ const studentNav = [
   { title: "Fee Structure", url: "/fees", icon: DollarSign },
   { title: "Payments", url: "/payments", icon: CreditCard },
   { title: "Receipts", url: "/receipts", icon: Receipt },
+  { title: "Settings", url: "/student-settings", icon: Settings },
 ];
 
 const teacherNav = [
@@ -41,11 +42,11 @@ const teacherNav = [
   { title: "Salaries", url: "/teacher-salaries", icon: Wallet },
   { title: "Loans", url: "/teacher-loans", icon: HandCoins },
   { title: "Attendance", url: "/teacher-attendance", icon: Clock },
+  { title: "Settings", url: "/teacher-settings", icon: Settings },
 ];
 
 const adminNav = [
   { title: "Role Management", url: "/roles", icon: Shield },
-  { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -104,7 +105,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+          <SidebarGroupLabel>Admin</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {adminNav.map((item) => (
