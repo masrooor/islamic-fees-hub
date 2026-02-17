@@ -19,6 +19,7 @@ import TeacherDashboard from "@/pages/TeacherDashboard";
 import TeacherDetail from "@/pages/TeacherDetail";
 import RoleManagement from "@/pages/RoleManagement";
 import StudentSettings from "@/pages/StudentSettings";
+import PendingFees from "@/pages/PendingFees";
 import TeacherSettings from "@/pages/TeacherSettings";
 import Login from "@/pages/Login";
 import NotFound from "./pages/NotFound";
@@ -48,6 +49,7 @@ function ProtectedRoutes() {
         <Route path="/fees" element={<FeeStructure />} />
         <Route path="/payments" element={<Payments />} />
         <Route path="/receipts" element={<Receipts />} />
+        <Route path="/pending-fees" element={<PendingFees />} />
         <Route path="/student-settings" element={<StudentSettings />} />
 
         {/* Teacher & Admin routes - admin only */}

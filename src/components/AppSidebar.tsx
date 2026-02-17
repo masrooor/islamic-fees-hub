@@ -13,6 +13,7 @@ import {
   Clock,
   Shield,
   Settings,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +33,7 @@ const studentNav = [
   { title: "Students", url: "/students", icon: Users },
   { title: "Fee Structure", url: "/fees", icon: DollarSign },
   { title: "Payments", url: "/payments", icon: CreditCard },
+  { title: "Pending Fees", url: "/pending-fees", icon: AlertCircle },
   { title: "Receipts", url: "/receipts", icon: Receipt },
   { title: "Settings", url: "/student-settings", icon: Settings },
 ];
