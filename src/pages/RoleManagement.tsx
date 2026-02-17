@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { UserPlus } from "lucide-react";
 
 interface UserRole {
   id: string;
@@ -20,7 +21,9 @@ export default function RoleManagement() {
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [newRole, setNewRole] = useState("user");
+  const [creating, setCreating] = useState(false);
 
   const fetchRoles = useCallback(async () => {
     setLoading(true);
@@ -39,6 +42,30 @@ export default function RoleManagement() {
     await fetchRoles();
   };
 
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEmail || !newPassword) return;
+    setCreating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("create-user", {
+        body: { email: newEmail, password: newPassword, role: newRole },
+      });
+      if (res.error || res.data?.error) {
+        toast.error(res.data?.error || res.error?.message || "Failed to create user");
+      } else {
+        toast.success(`User ${newEmail} created successfully`);
+        setNewEmail("");
+        setNewPassword("");
+        setNewRole("user");
+        await fetchRoles();
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create user");
+    }
+    setCreating(false);
+  };
+
   const roleBadgeVariant = (role: string) => {
     if (role === "admin") return "default" as const;
     if (role === "manager") return "secondary" as const;
@@ -51,6 +78,36 @@ export default function RoleManagement() {
         <h1 className="text-2xl font-bold text-foreground">Role Management</h1>
         <p className="text-sm text-muted-foreground">Manage user roles and permissions</p>
       </div>
+
+      <Card>
+        <CardHeader><CardTitle className="text-lg flex items-center gap-2"><UserPlus className="h-5 w-5" /> Add New User</CardTitle></CardHeader>
+        <CardContent>
+          <form onSubmit={handleCreateUser} className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+            <div className="space-y-1.5">
+              <Label>Email</Label>
+              <Input type="email" placeholder="user@example.com" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Password</Label>
+              <Input type="password" placeholder="Min 6 characters" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Role</Label>
+              <Select value={newRole} onValueChange={setNewRole}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                  <SelectItem value="user">User</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit" disabled={creating}>
+              {creating ? "Creating..." : "Add User"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle className="text-lg">User Roles</CardTitle></CardHeader>
@@ -97,7 +154,7 @@ export default function RoleManagement() {
             </div>
             <div className="flex items-start gap-3 p-3 bg-muted rounded-md">
               <Badge variant="outline">User</Badge>
-              <p className="text-muted-foreground">Basic access. No access to management features.</p>
+              <p className="text-muted-foreground">Access to student management only. No access to teacher management features.</p>
             </div>
           </div>
         </CardContent>

@@ -26,7 +26,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
-  const { session, isAdmin, loading } = useAuth();
+  const { session, isAdmin, userRole, loading } = useAuth();
 
   if (loading) {
     return (
@@ -36,39 +36,33 @@ function ProtectedRoutes() {
     );
   }
 
-  if (!session) return <Navigate to="/login" replace />;
-
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-2">
-          <p className="text-lg font-semibold text-foreground">Access Denied</p>
-          <p className="text-sm text-muted-foreground">
-            Your account does not have admin privileges.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (!session || !userRole) return <Navigate to="/login" replace />;
 
   return (
     <AppLayout>
       <Routes>
+        {/* Student routes - accessible by all roles */}
         <Route path="/" element={<Dashboard />} />
         <Route path="/students" element={<Students />} />
         <Route path="/students/:id" element={<StudentDetail />} />
         <Route path="/fees" element={<FeeStructure />} />
         <Route path="/payments" element={<Payments />} />
         <Route path="/receipts" element={<Receipts />} />
-        <Route path="/teachers" element={<Teachers />} />
-        <Route path="/teachers/:id" element={<TeacherDetail />} />
-        <Route path="/teacher-salaries" element={<TeacherSalaries />} />
-        <Route path="/teacher-loans" element={<TeacherLoans />} />
-        <Route path="/teacher-attendance" element={<TeacherAttendance />} />
-        <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-        <Route path="/roles" element={<RoleManagement />} />
         <Route path="/student-settings" element={<StudentSettings />} />
-        <Route path="/teacher-settings" element={<TeacherSettings />} />
+
+        {/* Teacher & Admin routes - admin only */}
+        {isAdmin && (
+          <>
+            <Route path="/teachers" element={<Teachers />} />
+            <Route path="/teachers/:id" element={<TeacherDetail />} />
+            <Route path="/teacher-salaries" element={<TeacherSalaries />} />
+            <Route path="/teacher-loans" element={<TeacherLoans />} />
+            <Route path="/teacher-attendance" element={<TeacherAttendance />} />
+            <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+            <Route path="/teacher-settings" element={<TeacherSettings />} />
+            <Route path="/roles" element={<RoleManagement />} />
+          </>
+        )}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
