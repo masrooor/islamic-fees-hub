@@ -1,9 +1,27 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useStudents, usePayments, useFeeStructures } from "@/store/useStore";
+import { useAuth } from "@/hooks/useAuth";
 import { formatPKR } from "@/lib/currency";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -13,15 +31,52 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, User, CreditCard, AlertTriangle } from "lucide-react";
+import { ArrowLeft, User, CreditCard, AlertTriangle, Plus } from "lucide-react";
 import { format, parseISO, eachMonthOfInterval, startOfMonth } from "date-fns";
+import { toast } from "@/hooks/use-toast";
 
 export default function StudentDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { students } = useStudents();
-  const { payments } = usePayments();
+  const { payments, addPayment } = usePayments();
   const { fees } = useFeeStructures();
+  const { user } = useAuth();
+
+  const [payDialogOpen, setPayDialogOpen] = useState(false);
+  const [payForm, setPayForm] = useState({
+    feeType: "tuition" as "tuition" | "registration",
+    amountPaid: "",
+    feeMonth: format(new Date(), "yyyy-MM"),
+    paymentMode: "cash",
+    notes: "",
+  });
+
+  const resetPayForm = () =>
+    setPayForm({
+      feeType: "tuition",
+      amountPaid: "",
+      feeMonth: format(new Date(), "yyyy-MM"),
+      paymentMode: "cash",
+      notes: "",
+    });
+
+  const handleRecordPayment = async () => {
+    if (!id || !payForm.amountPaid || parseFloat(payForm.amountPaid) <= 0) return;
+    await addPayment({
+      studentId: id,
+      feeType: payForm.feeType,
+      amountPaid: parseFloat(payForm.amountPaid),
+      date: format(new Date(), "yyyy-MM-dd"),
+      feeMonth: payForm.feeMonth,
+      notes: payForm.notes,
+      collectedBy: user?.id ?? null,
+      paymentMode: payForm.paymentMode,
+    });
+    toast({ title: "Payment recorded", description: `${formatPKR(parseFloat(payForm.amountPaid))} received.` });
+    resetPayForm();
+    setPayDialogOpen(false);
+  };
 
   const student = students.find((s) => s.id === id);
   const studentPayments = payments
@@ -89,9 +144,60 @@ export default function StudentDetail() {
             {student.studentCode} · {student.classGrade}
           </p>
         </div>
-        <Badge variant={student.status === "active" ? "default" : "secondary"} className="ml-auto">
-          {student.status}
-        </Badge>
+        <div className="ml-auto flex items-center gap-2">
+          <Dialog open={payDialogOpen} onOpenChange={(open) => { setPayDialogOpen(open); if (!open) resetPayForm(); }}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-1" /> Record Payment
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Record Payment for {student.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div>
+                  <Label>Fee Type</Label>
+                  <Select value={payForm.feeType} onValueChange={(v) => setPayForm({ ...payForm, feeType: v as "tuition" | "registration" })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tuition">Tuition</SelectItem>
+                      <SelectItem value="registration">Registration</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Fee Month</Label>
+                  <Input type="month" value={payForm.feeMonth} onChange={(e) => setPayForm({ ...payForm, feeMonth: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Amount (PKR) *</Label>
+                  <Input type="number" min={0} value={payForm.amountPaid} onChange={(e) => setPayForm({ ...payForm, amountPaid: e.target.value })} placeholder="0" />
+                </div>
+                <div>
+                  <Label>Payment Mode</Label>
+                  <Select value={payForm.paymentMode} onValueChange={(v) => setPayForm({ ...payForm, paymentMode: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">Cash</SelectItem>
+                      <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="online">Online</SelectItem>
+                      <SelectItem value="cheque">Cheque</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Notes</Label>
+                  <Input value={payForm.notes} onChange={(e) => setPayForm({ ...payForm, notes: e.target.value })} placeholder="Optional notes" />
+                </div>
+                <Button onClick={handleRecordPayment} className="w-full">Record Payment</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Badge variant={student.status === "active" ? "default" : "secondary"}>
+            {student.status}
+          </Badge>
+        </div>
       </div>
 
       {/* Profile Card */}
