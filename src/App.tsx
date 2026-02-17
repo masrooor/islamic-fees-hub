@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import Students from "@/pages/Students";
+import StudentDetail from "@/pages/StudentDetail";
 import FeeStructure from "@/pages/FeeStructure";
 import Payments from "@/pages/Payments";
 import Receipts from "@/pages/Receipts";
@@ -53,6 +54,7 @@ function ProtectedRoutes() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/students" element={<Students />} />
+        <Route path="/students/:id" element={<StudentDetail />} />
         <Route path="/fees" element={<FeeStructure />} />
         <Route path="/payments" element={<Payments />} />
         <Route path="/receipts" element={<Receipts />} />
