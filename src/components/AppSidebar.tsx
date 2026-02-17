@@ -42,6 +42,7 @@ const teacherNav = [
   { title: "Dashboard", url: "/teacher-dashboard", icon: LayoutDashboard },
   { title: "Teachers", url: "/teachers", icon: GraduationCap },
   { title: "Salaries", url: "/teacher-salaries", icon: Wallet },
+  { title: "Pending Salaries", url: "/pending-salaries", icon: AlertCircle },
   { title: "Loans", url: "/teacher-loans", icon: HandCoins },
   { title: "Attendance", url: "/teacher-attendance", icon: Clock },
   { title: "Settings", url: "/teacher-settings", icon: Settings },
