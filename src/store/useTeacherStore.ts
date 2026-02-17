@@ -65,6 +65,10 @@ export function useTeacherLoans() {
         id: l.id, teacherId: l.teacher_id, amount: Number(l.amount),
         remaining: Number(l.remaining), dateIssued: l.date_issued,
         notes: l.notes, status: l.status as "active" | "paid",
+        repaymentType: l.repayment_type || "manual",
+        repaymentMonth: l.repayment_month || null,
+        repaymentPercentage: l.repayment_percentage != null ? Number(l.repayment_percentage) : null,
+        repaymentAmount: l.repayment_amount != null ? Number(l.repayment_amount) : null,
       })));
     }
     setLoading(false);
@@ -76,6 +80,10 @@ export function useTeacherLoans() {
     await supabase.from("teacher_loans").insert({
       teacher_id: loan.teacherId, amount: loan.amount, remaining: loan.remaining,
       date_issued: loan.dateIssued, notes: loan.notes, status: loan.status,
+      repayment_type: loan.repaymentType || "manual",
+      repayment_month: loan.repaymentMonth || null,
+      repayment_percentage: loan.repaymentPercentage || null,
+      repayment_amount: loan.repaymentAmount || null,
     } as any);
     await fetchLoans();
   }, [fetchLoans]);
