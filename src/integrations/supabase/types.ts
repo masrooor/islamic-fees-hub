@@ -170,6 +170,10 @@ export type Database = {
           id: string
           notes: string
           remaining: number
+          repayment_amount: number | null
+          repayment_month: string | null
+          repayment_percentage: number | null
+          repayment_type: string
           status: string
           teacher_id: string
         }
@@ -180,6 +184,10 @@ export type Database = {
           id?: string
           notes?: string
           remaining?: number
+          repayment_amount?: number | null
+          repayment_month?: string | null
+          repayment_percentage?: number | null
+          repayment_type?: string
           status?: string
           teacher_id: string
         }
@@ -190,6 +198,10 @@ export type Database = {
           id?: string
           notes?: string
           remaining?: number
+          repayment_amount?: number | null
+          repayment_month?: string | null
+          repayment_percentage?: number | null
+          repayment_type?: string
           status?: string
           teacher_id?: string
         }

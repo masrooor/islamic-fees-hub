@@ -47,6 +47,10 @@ export interface TeacherLoan {
   dateIssued: string;
   notes: string;
   status: "active" | "paid";
+  repaymentType: "specific_month" | "percentage" | "custom_amount" | "manual";
+  repaymentMonth: string | null;
+  repaymentPercentage: number | null;
+  repaymentAmount: number | null;
 }
 
 export interface TeacherSalary {
