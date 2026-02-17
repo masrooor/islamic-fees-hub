@@ -21,6 +21,7 @@ import RoleManagement from "@/pages/RoleManagement";
 import StudentSettings from "@/pages/StudentSettings";
 import PendingFees from "@/pages/PendingFees";
 import TeacherSettings from "@/pages/TeacherSettings";
+import PendingSalaries from "@/pages/PendingSalaries";
 import Login from "@/pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -62,6 +63,7 @@ function ProtectedRoutes() {
             <Route path="/teacher-attendance" element={<TeacherAttendance />} />
             <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
             <Route path="/teacher-settings" element={<TeacherSettings />} />
+            <Route path="/pending-salaries" element={<PendingSalaries />} />
             <Route path="/roles" element={<RoleManagement />} />
           </>
         )}
