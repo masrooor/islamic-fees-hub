@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useStudents } from "@/store/useStore";
+import { useStudents, useFeeStructures } from "@/store/useStore";
 import { Student, CLASS_GRADES } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ type StudentForm = {
   enrollmentDate: string;
   status: "active" | "inactive";
   studentCode: string;
+  monthlyFee: string;
 };
 
 const emptyForm: StudentForm = {
@@ -52,10 +53,12 @@ const emptyForm: StudentForm = {
   enrollmentDate: format(new Date(), "yyyy-MM-dd"),
   status: "active",
   studentCode: "",
+  monthlyFee: "",
 };
 
 export default function Students() {
   const { students, addStudent, bulkAddStudents, updateStudent, deleteStudent } = useStudents();
+  const { fees, addFee } = useFeeStructures();
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -74,12 +77,25 @@ export default function Students() {
     return matchSearch && matchClass;
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.name || !form.classGrade) return;
     if (editingId) {
       updateStudent(editingId, form);
     } else {
-      addStudent(form);
+      const result = await addStudent(form);
+      // If a monthly fee was provided, add it to fee_structures if not already set
+      if (form.monthlyFee && parseFloat(form.monthlyFee) > 0) {
+        const existingTuition = fees.find(
+          (f) => f.classGrade === form.classGrade && f.feeType === "tuition"
+        );
+        if (!existingTuition) {
+          await addFee({
+            classGrade: form.classGrade,
+            feeType: "tuition",
+            amount: parseFloat(form.monthlyFee),
+          });
+        }
+      }
     }
     setForm(emptyForm);
     setEditingId(null);
@@ -88,6 +104,9 @@ export default function Students() {
 
   const handleEdit = (student: Student) => {
     setEditingId(student.id);
+    const existingFee = fees.find(
+      (f) => f.classGrade === student.classGrade && f.feeType === "tuition"
+    );
     setForm({
       name: student.name,
       guardianName: student.guardianName,
@@ -96,6 +115,7 @@ export default function Students() {
       enrollmentDate: student.enrollmentDate,
       status: student.status,
       studentCode: student.studentCode,
+      monthlyFee: existingFee ? String(existingFee.amount) : "",
     });
     setDialogOpen(true);
   };
@@ -212,6 +232,16 @@ export default function Students() {
                   onChange={(e) =>
                     setForm({ ...form, enrollmentDate: e.target.value })
                   }
+                />
+              </div>
+              <div>
+                <Label>Monthly Tuition Fee (PKR)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={form.monthlyFee}
+                  onChange={(e) => setForm({ ...form, monthlyFee: e.target.value })}
+                  placeholder="e.g. 2000"
                 />
               </div>
               <div>

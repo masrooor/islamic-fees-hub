@@ -12,6 +12,7 @@ import {
   HandCoins,
   Clock,
   Shield,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +45,7 @@ const teacherNav = [
 
 const adminNav = [
   { title: "Role Management", url: "/roles", icon: Shield },
+  { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
