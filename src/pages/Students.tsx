@@ -28,7 +28,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Pencil, Trash2, Download } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Download, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { downloadCSV } from "@/lib/exportCsv";
 import { format } from "date-fns";
 import StudentCsvImport from "@/components/StudentCsvImport";
@@ -60,6 +61,7 @@ export default function Students() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<StudentForm>(emptyForm);
+  const navigate = useNavigate();
 
   const filtered = students.filter((s) => {
     const q = search.toLowerCase();
@@ -298,6 +300,14 @@ export default function Students() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => navigate(`/students/${s.id}`)}
+                        title="View Details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <Button
                         size="icon"
                         variant="ghost"

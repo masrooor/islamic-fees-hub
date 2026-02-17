@@ -1,0 +1,258 @@
+import { useParams, useNavigate } from "react-router-dom";
+import { useStudents, usePayments, useFeeStructures } from "@/store/useStore";
+import { formatPKR } from "@/lib/currency";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ArrowLeft, User, CreditCard, AlertTriangle } from "lucide-react";
+import { format, parseISO, eachMonthOfInterval, startOfMonth } from "date-fns";
+
+export default function StudentDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { students } = useStudents();
+  const { payments } = usePayments();
+  const { fees } = useFeeStructures();
+
+  const student = students.find((s) => s.id === id);
+  const studentPayments = payments
+    .filter((p) => p.studentId === id)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const tuitionFee = fees.find(
+    (f) => f.classGrade === student?.classGrade && f.feeType === "tuition"
+  );
+  const registrationFee = fees.find(
+    (f) => f.classGrade === student?.classGrade && f.feeType === "registration"
+  );
+
+  // Calculate pending months — from enrollment to now
+  const pendingMonths: { month: string; due: number; paid: number; balance: number }[] = [];
+  if (student && tuitionFee) {
+    const enrollDate = parseISO(student.enrollmentDate);
+    const now = new Date();
+    const months = eachMonthOfInterval({
+      start: startOfMonth(enrollDate),
+      end: startOfMonth(now),
+    });
+    for (const m of months) {
+      const monthKey = format(m, "yyyy-MM");
+      const paidForMonth = studentPayments
+        .filter((p) => p.feeMonth === monthKey && p.feeType === "tuition")
+        .reduce((sum, p) => sum + p.amountPaid, 0);
+      const balance = tuitionFee.amount - paidForMonth;
+      pendingMonths.push({
+        month: monthKey,
+        due: tuitionFee.amount,
+        paid: paidForMonth,
+        balance,
+      });
+    }
+  }
+
+  const totalDue = pendingMonths.reduce((s, m) => s + m.due, 0);
+  const totalPaid = studentPayments
+    .filter((p) => p.feeType === "tuition")
+    .reduce((s, p) => s + p.amountPaid, 0);
+  const totalPending = totalDue - totalPaid;
+  const unpaidMonths = pendingMonths.filter((m) => m.balance > 0);
+
+  if (!student) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <p className="text-muted-foreground">Student not found.</p>
+        <Button variant="outline" onClick={() => navigate("/students")}>
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back to Students
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/students")}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">{student.name}</h1>
+          <p className="text-sm text-muted-foreground">
+            {student.studentCode} · {student.classGrade}
+          </p>
+        </div>
+        <Badge variant={student.status === "active" ? "default" : "secondary"} className="ml-auto">
+          {student.status}
+        </Badge>
+      </div>
+
+      {/* Profile Card */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <User className="h-4 w-4" /> Student Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground">Guardian</p>
+              <p className="font-medium">{student.guardianName || "—"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Contact</p>
+              <p className="font-medium">{student.contact || "—"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Enrollment Date</p>
+              <p className="font-medium">{student.enrollmentDate}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Monthly Fee</p>
+              <p className="font-medium">{tuitionFee ? formatPKR(tuitionFee.amount) : "Not set"}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Total Fees Due</p>
+            <p className="text-2xl font-bold">{formatPKR(totalDue)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Total Paid</p>
+            <p className="text-2xl font-bold text-primary">{formatPKR(totalPaid)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Pending Balance</p>
+            <p className={`text-2xl font-bold ${totalPending > 0 ? "text-destructive" : ""}`}>
+              {formatPKR(Math.max(0, totalPending))}
+            </p>
+            {unpaidMonths.length > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {unpaidMonths.length} month(s) unpaid/partial
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue="pending">
+        <TabsList>
+          <TabsTrigger value="pending" className="gap-1">
+            <AlertTriangle className="h-3.5 w-3.5" /> Pending Fees ({unpaidMonths.length})
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="gap-1">
+            <CreditCard className="h-3.5 w-3.5" /> Payment History ({studentPayments.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pending">
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Month</TableHead>
+                    <TableHead>Due</TableHead>
+                    <TableHead>Paid</TableHead>
+                    <TableHead>Balance</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {unpaidMonths.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                        All fees are paid. 🎉
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    unpaidMonths.map((m) => (
+                      <TableRow key={m.month}>
+                        <TableCell className="font-medium">{m.month}</TableCell>
+                        <TableCell>{formatPKR(m.due)}</TableCell>
+                        <TableCell>{formatPKR(m.paid)}</TableCell>
+                        <TableCell className="font-semibold text-destructive">
+                          {formatPKR(m.balance)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={m.paid === 0 ? "destructive" : "secondary"}>
+                            {m.paid === 0 ? "Unpaid" : "Partial"}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payments">
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Fee Month</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Mode</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Receipt #</TableHead>
+                    <TableHead>Notes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {studentPayments.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        No payments recorded.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    studentPayments.map((p) => (
+                      <TableRow key={p.id}>
+                        <TableCell>{p.date}</TableCell>
+                        <TableCell>{p.feeMonth || "—"}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="capitalize">{p.feeType}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="capitalize">
+                            {p.paymentMode.replace("_", " ")}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-medium">{formatPKR(p.amountPaid)}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{p.receiptNumber}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{p.notes || "—"}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
