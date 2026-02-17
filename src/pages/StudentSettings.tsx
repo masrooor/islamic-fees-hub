@@ -87,8 +87,8 @@ export default function Settings() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <SettingsIcon className="h-6 w-6" /> Settings
+      <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <SettingsIcon className="h-6 w-6" /> Student Settings
         </h1>
         <p className="text-sm text-muted-foreground">
           Manage fee increases for new sessions

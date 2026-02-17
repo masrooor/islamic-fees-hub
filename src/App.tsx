@@ -18,7 +18,8 @@ import TeacherAttendance from "@/pages/TeacherAttendance";
 import TeacherDashboard from "@/pages/TeacherDashboard";
 import TeacherDetail from "@/pages/TeacherDetail";
 import RoleManagement from "@/pages/RoleManagement";
-import Settings from "@/pages/Settings";
+import StudentSettings from "@/pages/StudentSettings";
+import TeacherSettings from "@/pages/TeacherSettings";
 import Login from "@/pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -66,7 +67,8 @@ function ProtectedRoutes() {
         <Route path="/teacher-attendance" element={<TeacherAttendance />} />
         <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
         <Route path="/roles" element={<RoleManagement />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route path="/student-settings" element={<StudentSettings />} />
+        <Route path="/teacher-settings" element={<TeacherSettings />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
