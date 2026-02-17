@@ -3,19 +3,71 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useStudents, usePayments, useFeeStructures } from "@/store/useStore";
+import { useAuth } from "@/hooks/useAuth";
 import { formatPKR } from "@/lib/currency";
 import { format, subMonths } from "date-fns";
-import { AlertCircle, Filter } from "lucide-react";
+import { AlertCircle, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import type { Student } from "@/types";
 
 export default function PendingFees() {
   const { students } = useStudents();
-  const { payments } = usePayments();
+  const { payments, addPayment } = usePayments();
   const { fees } = useFeeStructures();
+  const { user } = useAuth();
 
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
   const [selectedClass, setSelectedClass] = useState("all");
+
+  // Payment dialog state
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [paymentStudent, setPaymentStudent] = useState<{ student: Student; pendingAmount: number } | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentMode, setPaymentMode] = useState("cash");
+  const [paymentNotes, setPaymentNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const openPaymentDialog = (student: Student, pendingAmount: number) => {
+    setPaymentStudent({ student, pendingAmount });
+    setPaymentAmount(String(pendingAmount));
+    setPaymentMode("cash");
+    setPaymentNotes("");
+    setPaymentOpen(true);
+  };
+
+  const handleRecordPayment = async () => {
+    if (!paymentStudent || !paymentAmount) return;
+    const amount = Number(paymentAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await addPayment({
+        studentId: paymentStudent.student.id,
+        feeType: "tuition",
+        amountPaid: amount,
+        date: format(new Date(), "yyyy-MM-dd"),
+        feeMonth: selectedMonth,
+        notes: paymentNotes,
+        collectedBy: user?.id ?? null,
+        paymentMode,
+      });
+      toast.success(`Payment of ${formatPKR(amount)} recorded for ${paymentStudent.student.name}`);
+      setPaymentOpen(false);
+    } catch {
+      toast.error("Failed to record payment");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const monthOptions = useMemo(() => {
     const now = new Date();
@@ -143,6 +195,7 @@ export default function PendingFees() {
                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Paid</th>
                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Pending</th>
                     <th className="text-center py-3 px-2 font-medium text-muted-foreground">Status</th>
+                    <th className="text-center py-3 px-2 font-medium text-muted-foreground">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -165,6 +218,11 @@ export default function PendingFees() {
                           {status === "partial" ? "Partial" : "Unpaid"}
                         </Badge>
                       </td>
+                      <td className="py-3 px-2 text-center">
+                        <Button size="sm" variant="outline" onClick={() => openPaymentDialog(student, pendingAmount)}>
+                          <CreditCard className="h-3 w-3 mr-1" /> Collect
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -173,6 +231,56 @@ export default function PendingFees() {
           )}
         </CardContent>
       </Card>
+
+      {/* Record Payment Dialog */}
+      <Dialog open={paymentOpen} onOpenChange={setPaymentOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Record Payment</DialogTitle>
+            <DialogDescription>
+              {paymentStudent && `Collecting fee from ${paymentStudent.student.name} (${paymentStudent.student.classGrade})`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Amount (PKR)</Label>
+              <Input
+                type="number"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                placeholder="Enter amount"
+              />
+              {paymentStudent && (
+                <p className="text-xs text-muted-foreground">Pending: {formatPKR(paymentStudent.pendingAmount)}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Payment Mode</Label>
+              <Select value={paymentMode} onValueChange={setPaymentMode}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="online">Online</SelectItem>
+                  <SelectItem value="cheque">Cheque</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Notes (optional)</Label>
+              <Textarea value={paymentNotes} onChange={(e) => setPaymentNotes(e.target.value)} placeholder="Any notes..." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPaymentOpen(false)}>Cancel</Button>
+            <Button onClick={handleRecordPayment} disabled={submitting}>
+              {submitting ? "Saving..." : "Record Payment"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
