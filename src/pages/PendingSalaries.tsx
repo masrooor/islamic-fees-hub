@@ -46,6 +46,10 @@ export default function PendingSalaries() {
       toast.error("Enter a valid amount");
       return;
     }
+    if (amount > payTeacher.pending) {
+      toast.error(`Maximum payable amount is ${formatPKR(payTeacher.pending)} (advance salary already deducted)`);
+      return;
+    }
     setSubmitting(true);
     try {
       await addSalary({
@@ -102,14 +106,18 @@ export default function PendingSalaries() {
         }
         return sum;
       }, 0);
+      // Advance salary amounts (manual loans) count as already paid
+      const advanceTaken = activeLoans
+        .filter((l) => l.repaymentType === "manual")
+        .reduce((sum, l) => sum + l.remaining, 0);
 
-      const expectedSalary = teacher.monthlySalary - loanDeduction;
+      const expectedSalary = teacher.monthlySalary - loanDeduction - advanceTaken;
       const paidAmount = paidTeachers.get(teacher.id) ?? 0;
       const pendingAmount = Math.max(0, expectedSalary - paidAmount);
       const status: "paid" | "partial" | "unpaid" =
         paidAmount >= expectedSalary ? "paid" : paidAmount > 0 ? "partial" : "unpaid";
 
-      return { teacher, baseSalary: teacher.monthlySalary, loanDeduction, expectedSalary, paidAmount, pendingAmount, status };
+      return { teacher, baseSalary: teacher.monthlySalary, loanDeduction, advanceTaken, expectedSalary, paidAmount, pendingAmount, status };
     }).filter((d) => d.status !== "paid");
   }, [activeTeachers, salaries, loans, selectedMonth]);
 
@@ -127,10 +135,10 @@ export default function PendingSalaries() {
             const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label ?? selectedMonth;
             downloadCSV(
               `pending-salaries-${selectedMonth}.csv`,
-              ["Teacher", "Contact", "CNIC", "Base Salary", "Loan Deduction", "Net Expected", "Paid", "Pending", "Status"],
-              pendingData.map(({ teacher, baseSalary, loanDeduction, expectedSalary, paidAmount, pendingAmount, status }) => [
+              ["Teacher", "Contact", "CNIC", "Base Salary", "Loan Deduction", "Advance Deduction", "Net Expected", "Paid", "Pending", "Status"],
+              pendingData.map(({ teacher, baseSalary, loanDeduction, advanceTaken, expectedSalary, paidAmount, pendingAmount, status }) => [
                 teacher.name, teacher.contact, teacher.cnic,
-                String(baseSalary), String(loanDeduction), String(expectedSalary),
+                String(baseSalary), String(loanDeduction), String(advanceTaken), String(expectedSalary),
                 String(paidAmount), String(pendingAmount), status === "partial" ? "Partial" : "Unpaid",
               ])
             );
@@ -193,6 +201,7 @@ export default function PendingSalaries() {
                     <th className="text-left py-3 px-2 font-medium text-muted-foreground">Contact</th>
                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Base Salary</th>
                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Loan Ded.</th>
+                    <th className="text-right py-3 px-2 font-medium text-muted-foreground">Advance Ded.</th>
                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Net Expected</th>
                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Paid</th>
                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Pending</th>
@@ -201,7 +210,7 @@ export default function PendingSalaries() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pendingData.map(({ teacher, baseSalary, loanDeduction, expectedSalary, paidAmount, pendingAmount, status }) => (
+                  {pendingData.map(({ teacher, baseSalary, loanDeduction, advanceTaken, expectedSalary, paidAmount, pendingAmount, status }) => (
                     <tr key={teacher.id} className="border-b border-border last:border-0 hover:bg-muted/50">
                       <td className="py-3 px-2">
                         <Link to={`/teachers/${teacher.id}`} className="font-medium text-primary hover:underline">
@@ -212,6 +221,7 @@ export default function PendingSalaries() {
                       <td className="py-3 px-2">{teacher.contact}</td>
                       <td className="py-3 px-2 text-right">{formatPKR(baseSalary)}</td>
                       <td className="py-3 px-2 text-right">{loanDeduction > 0 ? formatPKR(loanDeduction) : "—"}</td>
+                      <td className="py-3 px-2 text-right">{advanceTaken > 0 ? formatPKR(advanceTaken) : "—"}</td>
                       <td className="py-3 px-2 text-right">{formatPKR(expectedSalary)}</td>
                       <td className="py-3 px-2 text-right">{formatPKR(paidAmount)}</td>
                       <td className="py-3 px-2 text-right font-semibold text-destructive">{formatPKR(pendingAmount)}</td>
