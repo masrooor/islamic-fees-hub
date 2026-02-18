@@ -117,7 +117,45 @@ export default function PendingSalaries() {
       const status: "paid" | "partial" | "unpaid" =
         paidAmount >= expectedSalary ? "paid" : paidAmount > 0 ? "partial" : "unpaid";
 
-      return { teacher, baseSalary: teacher.monthlySalary, loanDeduction, advanceTaken, expectedSalary, paidAmount, pendingAmount, status };
+      // Estimate loan completion
+      let estCompletion = "—";
+      if (activeLoans.length > 0) {
+        const totalRemaining = activeLoans.reduce((s, l) => s + l.remaining, 0);
+        if (totalRemaining <= 0) {
+          estCompletion = "Completed";
+        } else {
+          const totalMonthlyDeduction = activeLoans.reduce((s, l) => {
+            if (l.repaymentType === "percentage" && l.repaymentPercentage) {
+              return s + teacher.monthlySalary * (l.repaymentPercentage / 100);
+            }
+            if (l.repaymentType === "custom_amount" && l.repaymentAmount) {
+              return s + l.repaymentAmount;
+            }
+            if (l.repaymentType === "specific_month" && l.repaymentMonth) {
+              return s; // handled separately
+            }
+            return s;
+          }, 0);
+
+          // Find the latest specific_month deadline
+          const specificMonths = activeLoans
+            .filter((l) => l.repaymentType === "specific_month" && l.repaymentMonth)
+            .map((l) => l.repaymentMonth!);
+
+          if (totalMonthlyDeduction > 0) {
+            const monthsLeft = Math.ceil(totalRemaining / totalMonthlyDeduction);
+            const completionDate = new Date();
+            completionDate.setMonth(completionDate.getMonth() + monthsLeft);
+            estCompletion = format(completionDate, "MMM yyyy");
+          } else if (specificMonths.length > 0) {
+            estCompletion = specificMonths.sort().pop()!;
+          } else {
+            estCompletion = "Manual";
+          }
+        }
+      }
+
+      return { teacher, baseSalary: teacher.monthlySalary, loanDeduction, advanceTaken, expectedSalary, paidAmount, pendingAmount, status, estCompletion };
     }).filter((d) => d.status !== "paid");
   }, [activeTeachers, salaries, loans, selectedMonth]);
 
@@ -200,28 +238,30 @@ export default function PendingSalaries() {
                     <th className="text-left py-3 px-2 font-medium text-muted-foreground">Teacher</th>
                     <th className="text-left py-3 px-2 font-medium text-muted-foreground">Contact</th>
                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Base Salary</th>
-                    <th className="text-right py-3 px-2 font-medium text-muted-foreground">Loan Ded.</th>
-                    <th className="text-right py-3 px-2 font-medium text-muted-foreground">Advance Ded.</th>
-                    <th className="text-right py-3 px-2 font-medium text-muted-foreground">Net Expected</th>
-                    <th className="text-right py-3 px-2 font-medium text-muted-foreground">Paid</th>
-                    <th className="text-right py-3 px-2 font-medium text-muted-foreground">Pending</th>
-                    <th className="text-center py-3 px-2 font-medium text-muted-foreground">Status</th>
-                    <th className="text-center py-3 px-2 font-medium text-muted-foreground">Action</th>
+                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Loan Ded.</th>
+                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Advance Ded.</th>
+                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Est. Completion</th>
+                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Net Expected</th>
+                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Paid</th>
+                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Pending</th>
+                     <th className="text-center py-3 px-2 font-medium text-muted-foreground">Status</th>
+                     <th className="text-center py-3 px-2 font-medium text-muted-foreground">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {pendingData.map(({ teacher, baseSalary, loanDeduction, advanceTaken, expectedSalary, paidAmount, pendingAmount, status }) => (
-                    <tr key={teacher.id} className="border-b border-border last:border-0 hover:bg-muted/50">
-                      <td className="py-3 px-2">
-                        <Link to={`/teachers/${teacher.id}`} className="font-medium text-primary hover:underline">
-                          {teacher.name}
-                        </Link>
-                        <p className="text-xs text-muted-foreground">{teacher.cnic}</p>
-                      </td>
-                      <td className="py-3 px-2">{teacher.contact}</td>
-                      <td className="py-3 px-2 text-right">{formatPKR(baseSalary)}</td>
-                      <td className="py-3 px-2 text-right">{loanDeduction > 0 ? formatPKR(loanDeduction) : "—"}</td>
-                      <td className="py-3 px-2 text-right">{advanceTaken > 0 ? formatPKR(advanceTaken) : "—"}</td>
+                   {pendingData.map(({ teacher, baseSalary, loanDeduction, advanceTaken, expectedSalary, paidAmount, pendingAmount, status, estCompletion }) => (
+                     <tr key={teacher.id} className="border-b border-border last:border-0 hover:bg-muted/50">
+                       <td className="py-3 px-2">
+                         <Link to={`/teachers/${teacher.id}`} className="font-medium text-primary hover:underline">
+                           {teacher.name}
+                         </Link>
+                         <p className="text-xs text-muted-foreground">{teacher.cnic}</p>
+                       </td>
+                       <td className="py-3 px-2">{teacher.contact}</td>
+                       <td className="py-3 px-2 text-right">{formatPKR(baseSalary)}</td>
+                       <td className="py-3 px-2 text-right">{loanDeduction > 0 ? formatPKR(loanDeduction) : "—"}</td>
+                       <td className="py-3 px-2 text-right">{advanceTaken > 0 ? formatPKR(advanceTaken) : "—"}</td>
+                       <td className="py-3 px-2 text-right text-xs text-muted-foreground">{estCompletion}</td>
                       <td className="py-3 px-2 text-right">{formatPKR(expectedSalary)}</td>
                       <td className="py-3 px-2 text-right">{formatPKR(paidAmount)}</td>
                       <td className="py-3 px-2 text-right font-semibold text-destructive">{formatPKR(pendingAmount)}</td>
