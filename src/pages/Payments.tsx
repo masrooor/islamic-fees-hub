@@ -155,6 +155,9 @@ export default function Payments() {
 
   const paymentMonths = [...new Set(payments.map((p) => p.feeMonth).filter(Boolean))].sort().reverse();
 
+  const totalCollected = filteredPayments.reduce((sum, p) => sum + p.amountPaid, 0);
+  const totalCount = filteredPayments.length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -294,6 +297,21 @@ export default function Payments() {
           </DialogContent>
         </Dialog>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Card>
+          <CardContent className="pt-4">
+            <p className="text-sm text-muted-foreground">Total Collected {filterMonth !== "all" ? `(${filterMonth})` : "(All)"}</p>
+            <p className="text-2xl font-bold text-foreground">{formatPKR(totalCollected)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <p className="text-sm text-muted-foreground">Payments Count</p>
+            <p className="text-2xl font-bold text-foreground">{totalCount}</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
