@@ -77,6 +77,33 @@ export default function TeacherLoans() {
     }
   };
 
+  const getEstimatedCompletion = (loan: typeof loans[0]) => {
+    if (loan.status === "paid") return "Completed";
+    if (loan.remaining <= 0) return "Completed";
+
+    const teacher = teachers.find((t) => t.id === loan.teacherId);
+    if (!teacher) return "—";
+
+    if (loan.repaymentType === "specific_month" && loan.repaymentMonth) {
+      return loan.repaymentMonth;
+    }
+
+    let monthlyDeduction = 0;
+    if (loan.repaymentType === "percentage" && loan.repaymentPercentage) {
+      monthlyDeduction = teacher.monthlySalary * (loan.repaymentPercentage / 100);
+    } else if (loan.repaymentType === "custom_amount" && loan.repaymentAmount) {
+      monthlyDeduction = loan.repaymentAmount;
+    } else {
+      return "Manual";
+    }
+
+    if (monthlyDeduction <= 0) return "—";
+    const monthsLeft = Math.ceil(loan.remaining / monthlyDeduction);
+    const completionDate = new Date();
+    completionDate.setMonth(completionDate.getMonth() + monthsLeft);
+    return format(completionDate, "MMM yyyy");
+  };
+
   const handleDeleteLoan = async (id: string) => {
     await supabase.from("teacher_loans").delete().eq("id", id);
     toast.success("Loan deleted");
@@ -154,7 +181,7 @@ export default function TeacherLoans() {
           {loading ? <p className="text-sm text-muted-foreground text-center py-8">Loading...</p> : loans.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No loans recorded.</p> : (
             <Table>
               <TableHeader><TableRow>
-                <TableHead>Teacher</TableHead><TableHead>Amount</TableHead><TableHead>Remaining</TableHead><TableHead>Repayment</TableHead><TableHead>Date Issued</TableHead><TableHead>Status</TableHead><TableHead>Notes</TableHead><TableHead>Actions</TableHead>
+                <TableHead>Teacher</TableHead><TableHead>Amount</TableHead><TableHead>Remaining</TableHead><TableHead>Repayment</TableHead><TableHead>Est. Completion</TableHead><TableHead>Date Issued</TableHead><TableHead>Status</TableHead><TableHead>Notes</TableHead><TableHead>Actions</TableHead>
               </TableRow></TableHeader>
               <TableBody>
                 {loans.map((l) => (
@@ -162,8 +189,9 @@ export default function TeacherLoans() {
                     <TableCell className="font-medium">{getTeacherName(l.teacherId)}</TableCell>
                     <TableCell>{formatPKR(l.amount)}</TableCell>
                     <TableCell className={l.remaining > 0 ? "text-destructive font-semibold" : "text-primary"}>{formatPKR(l.remaining)}</TableCell>
-                    <TableCell><Badge variant="outline">{getRepaymentLabel(l)}</Badge></TableCell>
-                    <TableCell>{l.dateIssued}</TableCell>
+                     <TableCell><Badge variant="outline">{getRepaymentLabel(l)}</Badge></TableCell>
+                     <TableCell className="text-muted-foreground text-xs">{getEstimatedCompletion(l)}</TableCell>
+                     <TableCell>{l.dateIssued}</TableCell>
                     <TableCell><Badge variant={l.status === "active" ? "destructive" : "default"}>{l.status}</Badge></TableCell>
                     <TableCell className="text-muted-foreground">{l.notes}</TableCell>
                     <TableCell>
