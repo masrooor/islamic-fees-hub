@@ -31,22 +31,28 @@ export default function TeacherSalaries() {
     datePaid: format(new Date(), "yyyy-MM-dd"),
     paymentMode: "cash" as "cash" | "online",
     receiptUrl: "",
-    customAmount: 0,
-    customLoanDeduction: 0,
-    useCustomLoanDeduction: false,
-    useCustomAmount: false,
   });
 
   const selectedTeacher = teachers.find((t) => t.id === form.teacherId);
   const activeLoans = loans.filter((l) => l.teacherId === form.teacherId && l.status === "active");
   const totalLoanRemaining = activeLoans.reduce((s, l) => s + l.remaining, 0);
-  const defaultLoanDeduction = Math.min(totalLoanRemaining, (selectedTeacher?.monthlySalary ?? 0) * 0.1);
-  const loanDeduction = form.useCustomLoanDeduction
-    ? Math.min(form.customLoanDeduction, totalLoanRemaining)
-    : defaultLoanDeduction;
-  const baseSalary = form.useCustomAmount && form.customAmount > 0
-    ? form.customAmount
-    : (selectedTeacher?.monthlySalary ?? 0);
+  const baseSalary = selectedTeacher?.monthlySalary ?? 0;
+
+  // Calculate loan deduction based on each loan's repayment configuration
+  const loanDeduction = activeLoans.reduce((total, loan) => {
+    let deduction = 0;
+    if (loan.repaymentType === "percentage" && loan.repaymentPercentage) {
+      deduction = baseSalary * (loan.repaymentPercentage / 100);
+    } else if (loan.repaymentType === "custom_amount" && loan.repaymentAmount) {
+      deduction = loan.repaymentAmount;
+    } else if (loan.repaymentType === "specific_month" && loan.repaymentMonth === form.month) {
+      deduction = loan.remaining;
+    } else if (loan.repaymentType === "manual") {
+      deduction = 0; // manual loans are not auto-deducted
+    }
+    return total + Math.min(deduction, loan.remaining);
+  }, 0);
+
   const netPaid = baseSalary - loanDeduction - form.otherDeduction;
 
   const currentMonth = format(new Date(), "yyyy-MM");
@@ -78,7 +84,7 @@ export default function TeacherSalaries() {
       teacherId: form.teacherId, month: form.month, baseSalary, loanDeduction,
       otherDeduction: form.otherDeduction, netPaid, datePaid: form.datePaid, notes: form.notes,
       paymentMode: form.paymentMode, receiptUrl: form.receiptUrl,
-      customAmount: form.useCustomAmount ? form.customAmount : 0,
+      customAmount: 0,
     });
     let remaining = loanDeduction;
     for (const loan of activeLoans) {
@@ -93,7 +99,6 @@ export default function TeacherSalaries() {
     setForm({
       teacherId: "", month: format(new Date(), "yyyy-MM"), otherDeduction: 0, notes: "",
       datePaid: format(new Date(), "yyyy-MM-dd"), paymentMode: "cash", receiptUrl: "",
-      customAmount: 0, customLoanDeduction: 0, useCustomLoanDeduction: false, useCustomAmount: false,
     });
   };
 
@@ -211,34 +216,9 @@ export default function TeacherSalaries() {
 
               {selectedTeacher && (
                 <div className="bg-muted p-3 rounded-md text-sm space-y-1">
-                  <p>Base Salary: <strong>{formatPKR(selectedTeacher.monthlySalary)}</strong></p>
-                  <p>Loan Deduction ({form.useCustomLoanDeduction ? "custom" : "10%"}): <strong className="text-destructive">-{formatPKR(loanDeduction)}</strong></p>
+                  <p>Base Salary: <strong>{formatPKR(baseSalary)}</strong></p>
+                  <p>Loan Deduction: <strong className="text-destructive">-{formatPKR(loanDeduction)}</strong></p>
                   <p className="text-xs text-muted-foreground">Outstanding loans: {formatPKR(totalLoanRemaining)}</p>
-                </div>
-              )}
-
-              {/* Custom Amount */}
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="useCustomAmount" checked={form.useCustomAmount}
-                  onChange={(e) => setForm({ ...form, useCustomAmount: e.target.checked })}
-                  className="rounded border-input" />
-                <Label htmlFor="useCustomAmount" className="text-sm">Use custom salary amount</Label>
-              </div>
-              {form.useCustomAmount && (
-                <div><Label>Custom Amount</Label><Input type="number" value={form.customAmount} onChange={(e) => setForm({ ...form, customAmount: Number(e.target.value) })} /></div>
-              )}
-
-              {/* Custom Loan Deduction */}
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="useCustomLoan" checked={form.useCustomLoanDeduction}
-                  onChange={(e) => setForm({ ...form, useCustomLoanDeduction: e.target.checked })}
-                  className="rounded border-input" />
-                <Label htmlFor="useCustomLoan" className="text-sm">Use custom loan deduction</Label>
-              </div>
-              {form.useCustomLoanDeduction && (
-                <div><Label>Custom Loan Deduction (max: {formatPKR(totalLoanRemaining)})</Label>
-                  <Input type="number" value={form.customLoanDeduction}
-                    onChange={(e) => setForm({ ...form, customLoanDeduction: Math.min(Number(e.target.value), totalLoanRemaining) })} />
                 </div>
               )}
 
