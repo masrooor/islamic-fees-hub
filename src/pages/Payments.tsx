@@ -40,7 +40,9 @@ export default function Payments() {
   const { fees } = useFeeStructures();
   const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterFeeType, setFilterFeeType] = useState("all");
+  const [filterMonth, setFilterMonth] = useState("all");
+  const [filterMode, setFilterMode] = useState("all");
 
   const currentMonth = format(new Date(), "yyyy-MM");
   const [form, setForm] = useState({
@@ -143,6 +145,15 @@ export default function Payments() {
   const sortedPayments = [...payments].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
+
+  const filteredPayments = sortedPayments.filter((p) => {
+    if (filterFeeType !== "all" && p.feeType !== filterFeeType) return false;
+    if (filterMonth !== "all" && p.feeMonth !== filterMonth) return false;
+    if (filterMode !== "all" && p.paymentMode !== filterMode) return false;
+    return true;
+  });
+
+  const paymentMonths = [...new Set(payments.map((p) => p.feeMonth).filter(Boolean))].sort().reverse();
 
   return (
     <div className="space-y-6">
@@ -286,7 +297,42 @@ export default function Payments() {
       </div>
 
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="pt-4">
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <Select value={filterFeeType} onValueChange={setFilterFeeType}>
+              <SelectTrigger className="w-[140px]"><SelectValue placeholder="Fee Type" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="tuition">Tuition</SelectItem>
+                <SelectItem value="registration">Registration</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterMonth} onValueChange={setFilterMonth}>
+              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Fee Month" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Months</SelectItem>
+                {paymentMonths.map((m) => (
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterMode} onValueChange={setFilterMode}>
+              <SelectTrigger className="w-[150px]"><SelectValue placeholder="Mode" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Modes</SelectItem>
+                <SelectItem value="cash">Cash</SelectItem>
+                <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                <SelectItem value="online">Online</SelectItem>
+                <SelectItem value="cheque">Cheque</SelectItem>
+              </SelectContent>
+            </Select>
+            {(filterFeeType !== "all" || filterMonth !== "all" || filterMode !== "all") && (
+              <Button variant="ghost" size="sm" onClick={() => { setFilterFeeType("all"); setFilterMonth("all"); setFilterMode("all"); }}>
+                Clear Filters
+              </Button>
+            )}
+            <span className="text-xs text-muted-foreground ml-auto">{filteredPayments.length} record(s)</span>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -302,7 +348,7 @@ export default function Payments() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedPayments.length === 0 ? (
+              {filteredPayments.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={9}
@@ -312,7 +358,7 @@ export default function Payments() {
                   </TableCell>
                 </TableRow>
               ) : (
-                sortedPayments.map((p) => (
+                filteredPayments.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell>{p.date}</TableCell>
                     <TableCell>{p.feeMonth}</TableCell>
