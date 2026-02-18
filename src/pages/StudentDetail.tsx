@@ -44,6 +44,8 @@ export default function StudentDetail() {
   const { user } = useAuth();
 
   const [payDialogOpen, setPayDialogOpen] = useState(false);
+  const [filterFeeType, setFilterFeeType] = useState<string>("all");
+  const [filterMonth, setFilterMonth] = useState<string>("all");
   const [payForm, setPayForm] = useState({
     feeType: "tuition" as "tuition" | "registration",
     amountPaid: "",
@@ -82,6 +84,14 @@ export default function StudentDetail() {
   const studentPayments = payments
     .filter((p) => p.studentId === id)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const filteredPayments = studentPayments.filter((p) => {
+    if (filterFeeType !== "all" && p.feeType !== filterFeeType) return false;
+    if (filterMonth !== "all" && p.feeMonth !== filterMonth) return false;
+    return true;
+  });
+
+  const paymentMonths = [...new Set(studentPayments.map((p) => p.feeMonth).filter(Boolean))].sort().reverse();
 
   const tuitionFee = fees.find(
     (f) => f.classGrade === student?.classGrade && f.feeType === "tuition"
@@ -314,7 +324,32 @@ export default function StudentDetail() {
 
         <TabsContent value="payments">
           <Card>
-            <CardContent className="p-0">
+            <CardContent className="pt-4">
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <Select value={filterFeeType} onValueChange={setFilterFeeType}>
+                  <SelectTrigger className="w-[140px]"><SelectValue placeholder="Fee Type" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="tuition">Tuition</SelectItem>
+                    <SelectItem value="registration">Registration</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filterMonth} onValueChange={setFilterMonth}>
+                  <SelectTrigger className="w-[160px]"><SelectValue placeholder="Fee Month" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Months</SelectItem>
+                    {paymentMonths.map((m) => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {(filterFeeType !== "all" || filterMonth !== "all") && (
+                  <Button variant="ghost" size="sm" onClick={() => { setFilterFeeType("all"); setFilterMonth("all"); }}>
+                    Clear Filters
+                  </Button>
+                )}
+                <span className="text-xs text-muted-foreground ml-auto">{filteredPayments.length} record(s)</span>
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -328,14 +363,14 @@ export default function StudentDetail() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {studentPayments.length === 0 ? (
+                  {filteredPayments.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        No payments recorded.
+                        No payments found.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    studentPayments.map((p) => (
+                    filteredPayments.map((p) => (
                       <TableRow key={p.id}>
                         <TableCell>{p.date}</TableCell>
                         <TableCell>{p.feeMonth || "—"}</TableCell>
