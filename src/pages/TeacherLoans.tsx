@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTeachers, useTeacherLoans } from "@/store/useTeacherStore";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatPKR } from "@/lib/currency";
@@ -17,7 +19,7 @@ type RepaymentType = "specific_month" | "percentage" | "custom_amount" | "manual
 
 export default function TeacherLoans() {
   const { teachers } = useTeachers();
-  const { loans, loading, addLoan } = useTeacherLoans();
+  const { loans, loading, addLoan, updateLoan, fetchLoans } = useTeacherLoans();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     teacherId: "",
@@ -73,6 +75,12 @@ export default function TeacherLoans() {
       case "custom_amount": return `${formatPKR(loan.repaymentAmount ?? 0)}/month`;
       default: return "Manual";
     }
+  };
+
+  const handleDeleteLoan = async (id: string) => {
+    await supabase.from("teacher_loans").delete().eq("id", id);
+    toast.success("Loan deleted");
+    await fetchLoans();
   };
 
   return (
@@ -146,7 +154,7 @@ export default function TeacherLoans() {
           {loading ? <p className="text-sm text-muted-foreground text-center py-8">Loading...</p> : loans.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No loans recorded.</p> : (
             <Table>
               <TableHeader><TableRow>
-                <TableHead>Teacher</TableHead><TableHead>Amount</TableHead><TableHead>Remaining</TableHead><TableHead>Repayment</TableHead><TableHead>Date Issued</TableHead><TableHead>Status</TableHead><TableHead>Notes</TableHead>
+                <TableHead>Teacher</TableHead><TableHead>Amount</TableHead><TableHead>Remaining</TableHead><TableHead>Repayment</TableHead><TableHead>Date Issued</TableHead><TableHead>Status</TableHead><TableHead>Notes</TableHead><TableHead>Actions</TableHead>
               </TableRow></TableHeader>
               <TableBody>
                 {loans.map((l) => (
@@ -158,6 +166,27 @@ export default function TeacherLoans() {
                     <TableCell>{l.dateIssued}</TableCell>
                     <TableCell><Badge variant={l.status === "active" ? "destructive" : "default"}>{l.status}</Badge></TableCell>
                     <TableCell className="text-muted-foreground">{l.notes}</TableCell>
+                    <TableCell>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Loan</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete this loan record for {getTeacherName(l.teacherId)} ({formatPKR(l.amount)}). This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteLoan(l.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
