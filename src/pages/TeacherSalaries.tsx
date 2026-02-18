@@ -215,9 +215,40 @@ export default function TeacherSalaries() {
               )}
 
               {selectedTeacher && (
-                <div className="bg-muted p-3 rounded-md text-sm space-y-1">
+                <div className="bg-muted p-3 rounded-md text-sm space-y-2">
                   <p>Base Salary: <strong>{formatPKR(baseSalary)}</strong></p>
                   <p>Loan Deduction: <strong className="text-destructive">-{formatPKR(loanDeduction)}</strong></p>
+                  {activeLoans.length > 0 && (
+                    <div className="space-y-1 border-t border-border pt-2 mt-1">
+                      <p className="text-xs font-medium text-muted-foreground">Loan Breakdown:</p>
+                      {activeLoans.map((loan) => {
+                        let deduction = 0;
+                        let modeLabel = "";
+                        if (loan.repaymentType === "percentage" && loan.repaymentPercentage) {
+                          deduction = Math.min(baseSalary * (loan.repaymentPercentage / 100), loan.remaining);
+                          modeLabel = `${loan.repaymentPercentage}% of salary`;
+                        } else if (loan.repaymentType === "custom_amount" && loan.repaymentAmount) {
+                          deduction = Math.min(loan.repaymentAmount, loan.remaining);
+                          modeLabel = `Fixed ${formatPKR(loan.repaymentAmount)}/month`;
+                        } else if (loan.repaymentType === "specific_month") {
+                          deduction = loan.repaymentMonth === form.month ? loan.remaining : 0;
+                          modeLabel = `Full return in ${loan.repaymentMonth}`;
+                        } else if (loan.repaymentType === "manual") {
+                          modeLabel = "Advance salary (manual)";
+                        }
+                        return (
+                          <div key={loan.id} className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground">
+                              {formatPKR(loan.amount)} loan — <span className="italic">{modeLabel}</span>
+                            </span>
+                            <span className="text-destructive font-medium">
+                              {deduction > 0 ? `-${formatPKR(deduction)}` : "—"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                   <p className="text-xs text-muted-foreground">Outstanding loans: {formatPKR(totalLoanRemaining)}</p>
                 </div>
               )}
