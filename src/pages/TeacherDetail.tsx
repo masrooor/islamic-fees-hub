@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, User, Wallet, HandCoins, Clock } from "lucide-react";
+import { ArrowLeft, User, Wallet, HandCoins, Clock, Banknote } from "lucide-react";
 import { formatPKR } from "@/lib/currency";
 
 export default function TeacherDetail() {
@@ -45,6 +45,9 @@ export default function TeacherDetail() {
   const totalPaid = teacherSalaries.reduce((sum, s) => sum + s.netPaid, 0);
   const activeLoans = teacherLoans.filter((l) => l.status === "active");
   const totalLoanRemaining = activeLoans.reduce((sum, l) => sum + l.remaining, 0);
+  const teacherAdvances = teacherLoans.filter((l) => l.repaymentType === "manual");
+  const totalAdvanceTaken = teacherAdvances.reduce((sum, a) => sum + a.amount, 0);
+  const totalAdvanceRemaining = teacherAdvances.filter(a => a.status === "active").reduce((sum, a) => sum + a.remaining, 0);
 
   return (
     <div className="space-y-6">
@@ -90,7 +93,7 @@ export default function TeacherDetail() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6 flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -115,6 +118,17 @@ export default function TeacherDetail() {
         </Card>
         <Card>
           <CardContent className="pt-6 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-accent flex items-center justify-center">
+              <Banknote className="h-5 w-5 text-accent-foreground" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Advance Balance</p>
+              <p className="text-lg font-bold text-foreground">{formatPKR(totalAdvanceRemaining)}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
               <Clock className="h-5 w-5 text-secondary-foreground" />
             </div>
@@ -130,6 +144,7 @@ export default function TeacherDetail() {
       <Tabs defaultValue="salaries">
         <TabsList>
           <TabsTrigger value="salaries">Salaries ({teacherSalaries.length})</TabsTrigger>
+          <TabsTrigger value="advances">Advances ({teacherAdvances.length})</TabsTrigger>
           <TabsTrigger value="loans">Loans ({teacherLoans.length})</TabsTrigger>
           <TabsTrigger value="attendance">Attendance ({teacherAttendance.length})</TabsTrigger>
         </TabsList>
@@ -167,6 +182,48 @@ export default function TeacherDetail() {
                     ))}
                   </TableBody>
                 </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="advances">
+          <Card>
+            <CardHeader><CardTitle className="text-lg">Advance Salary History</CardTitle></CardHeader>
+            <CardContent>
+              {teacherAdvances.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">No advance salary records.</p>
+              ) : (
+                <>
+                  <div className="mb-4 flex items-center gap-4 text-sm">
+                    <span className="text-muted-foreground">Total Taken: <strong className="text-foreground">{formatPKR(totalAdvanceTaken)}</strong></span>
+                    <span className="text-muted-foreground">Outstanding: <strong className="text-destructive">{formatPKR(totalAdvanceRemaining)}</strong></span>
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date Issued</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Remaining</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Notes</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {teacherAdvances.map((a) => (
+                        <TableRow key={a.id}>
+                          <TableCell>{a.dateIssued}</TableCell>
+                          <TableCell>{formatPKR(a.amount)}</TableCell>
+                          <TableCell className="font-semibold">{formatPKR(a.remaining)}</TableCell>
+                          <TableCell>
+                            <Badge variant={a.status === "active" ? "destructive" : "default"}>{a.status}</Badge>
+                          </TableCell>
+                          <TableCell className="max-w-[200px] truncate">{a.notes || "—"}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </>
               )}
             </CardContent>
           </Card>
