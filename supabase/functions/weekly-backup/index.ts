@@ -19,12 +19,6 @@ function base64UrlEncode(data: Uint8Array): string {
 }
 
 async function getAccessToken(serviceAccountKey: string): Promise<string> {
-  // Debug: log first 50 chars to understand format
-  console.log("Key starts with:", serviceAccountKey.substring(0, 50));
-  console.log("Key length:", serviceAccountKey.length);
-  console.log("Char codes:", Array.from(serviceAccountKey.substring(0, 5)).map(c => c.charCodeAt(0)));
-  
-  // Handle potential extra quoting or base64 encoding from secret storage
   let cleaned = serviceAccountKey.trim();
   
   // Try base64 decode first
@@ -39,8 +33,11 @@ async function getAccessToken(serviceAccountKey: string): Promise<string> {
   if ((cleaned.startsWith('"') && cleaned.endsWith('"')) || (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
     cleaned = cleaned.slice(1, -1);
   }
-  // Unescape any escaped characters
-  cleaned = cleaned.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+  
+  // Replace literal newlines (not \n sequences) with \\n so JSON.parse works
+  // This handles the case where the secret storage converts \n to actual newlines
+  cleaned = cleaned.replace(/\r?\n/g, '\\n');
+  
   const sa = JSON.parse(cleaned);
   const now = Math.floor(Date.now() / 1000);
 
