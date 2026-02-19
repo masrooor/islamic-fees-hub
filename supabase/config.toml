@@ -1,1 +1,4 @@
 project_id = "kfalicdqmusftthihvrp"
+
+[functions.weekly-backup]
+verify_jwt = false
