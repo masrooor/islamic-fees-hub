@@ -19,7 +19,29 @@ function base64UrlEncode(data: Uint8Array): string {
 }
 
 async function getAccessToken(serviceAccountKey: string): Promise<string> {
-  const sa = JSON.parse(serviceAccountKey);
+  // Debug: log first 50 chars to understand format
+  console.log("Key starts with:", serviceAccountKey.substring(0, 50));
+  console.log("Key length:", serviceAccountKey.length);
+  console.log("Char codes:", Array.from(serviceAccountKey.substring(0, 5)).map(c => c.charCodeAt(0)));
+  
+  // Handle potential extra quoting or base64 encoding from secret storage
+  let cleaned = serviceAccountKey.trim();
+  
+  // Try base64 decode first
+  try {
+    const decoded = atob(cleaned);
+    if (decoded.startsWith("{")) {
+      cleaned = decoded;
+    }
+  } catch { /* not base64 */ }
+  
+  // If wrapped in outer quotes, unwrap
+  if ((cleaned.startsWith('"') && cleaned.endsWith('"')) || (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
+    cleaned = cleaned.slice(1, -1);
+  }
+  // Unescape any escaped characters
+  cleaned = cleaned.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+  const sa = JSON.parse(cleaned);
   const now = Math.floor(Date.now() / 1000);
 
   const header = base64UrlEncode(
