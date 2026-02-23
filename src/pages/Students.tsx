@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useStudents, useFeeStructures } from "@/store/useStore";
-import { Student, CLASS_GRADES } from "@/types";
+import { Student } from "@/types";
+import { useClasses } from "@/hooks/useClasses";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,6 +60,7 @@ const emptyForm: StudentForm = {
 export default function Students() {
   const { students, addStudent, bulkAddStudents, updateStudent, deleteStudent } = useStudents();
   const { fees, addFee } = useFeeStructures();
+  const { classNames } = useClasses();
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -216,7 +218,7 @@ export default function Students() {
                     <SelectValue placeholder="Select class" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CLASS_GRADES.map((g) => (
+                    {classNames.map((g) => (
                       <SelectItem key={g} value={g}>
                         {g}
                       </SelectItem>
@@ -284,7 +286,7 @@ export default function Students() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Classes</SelectItem>
-            {CLASS_GRADES.map((g) => (
+            {classNames.map((g) => (
               <SelectItem key={g} value={g}>
                 {g}
               </SelectItem>

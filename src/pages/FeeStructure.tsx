@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useFeeStructures } from "@/store/useStore";
-import { CLASS_GRADES } from "@/types";
+import { useClasses } from "@/hooks/useClasses";
 import { formatPKR } from "@/lib/currency";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ const emptyForm = { classGrade: "", feeType: "tuition" as "tuition" | "registrat
 
 export default function FeeStructurePage() {
   const { fees, addFee, updateFee, deleteFee } = useFeeStructures();
+  const { classNames } = useClasses();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -92,7 +93,7 @@ export default function FeeStructurePage() {
                     <SelectValue placeholder="Select class" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CLASS_GRADES.map((g) => (
+                    {classNames.map((g) => (
                       <SelectItem key={g} value={g}>
                         {g}
                       </SelectItem>

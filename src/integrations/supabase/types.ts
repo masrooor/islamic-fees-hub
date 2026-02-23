@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      classes: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       fee_structures: {
         Row: {
           amount: number
