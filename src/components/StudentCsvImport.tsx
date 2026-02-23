@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { CLASS_GRADES } from "@/types";
+import { useClasses } from "@/hooks/useClasses";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -64,6 +64,7 @@ function parseCsvLine(line: string): string[] {
 }
 
 export default function StudentCsvImport({ onImport }: Props) {
+  const { classNames } = useClasses();
   const [open, setOpen] = useState(false);
   const [parsed, setParsed] = useState<CsvStudent[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
@@ -126,7 +127,7 @@ export default function StudentCsvImport({ onImport }: Props) {
         }
 
         // Validate class grade - try to match
-        const matchedGrade = CLASS_GRADES.find(
+        const matchedGrade = classNames.find(
           (g) => g.toLowerCase() === classGrade.toLowerCase() || g.toLowerCase().replace(/\s/g, "") === classGrade.toLowerCase().replace(/\s/g, "")
         );
         if (!matchedGrade) {
