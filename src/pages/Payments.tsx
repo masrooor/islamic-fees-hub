@@ -33,6 +33,7 @@ import { Plus, Download, FileText, Search } from "lucide-react";
 import { downloadCSV } from "@/lib/exportCsv";
 import { format } from "date-fns";
 import { formatPKR } from "@/lib/currency";
+import { formatFeeMonth } from "@/lib/formatMonth";
 
 export default function Payments() {
   const { students } = useStudents();
@@ -124,7 +125,7 @@ export default function Payments() {
             <div class="section-title">Payment Details</div>
             <div class="row"><span class="label">Receipt #</span><span class="value">${payment.receiptNumber}</span></div>
             <div class="row"><span class="label">Payment Date</span><span class="value">${payment.date}</span></div>
-            <div class="row"><span class="label">Fee Month</span><span class="value">${payment.feeMonth || "—"}</span></div>
+            <div class="row"><span class="label">Fee Month</span><span class="value">${formatFeeMonth(payment.feeMonth) || "—"}</span></div>
             <div class="row"><span class="label">Fee Type</span><span class="value" style="text-transform:capitalize">${payment.feeType}</span></div>
             ${payment.notes ? `<div class="row"><span class="label">Notes</span><span class="value">${payment.notes}</span></div>` : ""}
             <div class="row amount-row"><span class="label" style="font-size:16px">Amount Paid</span><span class="value">Rs. ${payment.amountPaid.toLocaleString()}</span></div>
@@ -304,7 +305,7 @@ export default function Payments() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <CardContent className="pt-4">
-            <p className="text-sm text-muted-foreground">Total Collected {filterMonth !== "all" ? `(${filterMonth})` : "(All)"}</p>
+            <p className="text-sm text-muted-foreground">Total Collected {filterMonth !== "all" ? `(${formatFeeMonth(filterMonth)})` : "(All)"}</p>
             <p className="text-2xl font-bold text-foreground">{formatPKR(totalCollected)}</p>
           </CardContent>
         </Card>
@@ -341,7 +342,7 @@ export default function Payments() {
               <SelectContent>
                 <SelectItem value="all">All Months</SelectItem>
                 {paymentMonths.map((m) => (
-                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                  <SelectItem key={m} value={m}>{formatFeeMonth(m)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -390,7 +391,7 @@ export default function Payments() {
                 filteredPayments.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell>{p.date}</TableCell>
-                    <TableCell>{p.feeMonth}</TableCell>
+                    <TableCell>{formatFeeMonth(p.feeMonth)}</TableCell>
                     <TableCell className="font-medium">
                       {getStudentName(p.studentId)}
                     </TableCell>

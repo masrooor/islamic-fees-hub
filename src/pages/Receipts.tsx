@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Printer, Search } from "lucide-react";
 import { formatPKR } from "@/lib/currency";
+import { formatFeeMonth } from "@/lib/formatMonth";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function Receipts() {
@@ -78,6 +79,7 @@ export default function Receipts() {
             <div class="row"><span class="label">Date</span><span class="value">${payment.date}</span></div>
             <div class="row"><span class="label">Student</span><span class="value">${student?.name ?? "Unknown"}</span></div>
             <div class="row"><span class="label">Class</span><span class="value">${student?.classGrade ?? "—"}</span></div>
+            <div class="row"><span class="label">Fee Month</span><span class="value">${formatFeeMonth(payment.feeMonth)}</span></div>
             <div class="row"><span class="label">Fee Type</span><span class="value" style="text-transform:capitalize">${payment.feeType}</span></div>
             <div class="row"><span class="label">Amount Paid</span><span class="value total">Rs. ${payment.amountPaid.toLocaleString()}</span></div>
             ${payment.notes ? `<div class="row"><span class="label">Notes</span><span class="value">${payment.notes}</span></div>` : ""}
