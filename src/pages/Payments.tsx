@@ -29,7 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Download, FileText } from "lucide-react";
+import { Plus, Download, FileText, Search } from "lucide-react";
 import { downloadCSV } from "@/lib/exportCsv";
 import { format } from "date-fns";
 import { formatPKR } from "@/lib/currency";
@@ -43,6 +43,7 @@ export default function Payments() {
   const [filterFeeType, setFilterFeeType] = useState("all");
   const [filterMonth, setFilterMonth] = useState("all");
   const [filterMode, setFilterMode] = useState("all");
+  const [searchReceipt, setSearchReceipt] = useState("");
 
   const currentMonth = format(new Date(), "yyyy-MM");
   const [form, setForm] = useState({
@@ -147,6 +148,7 @@ export default function Payments() {
   );
 
   const filteredPayments = sortedPayments.filter((p) => {
+    if (searchReceipt && !p.receiptNumber.toLowerCase().includes(searchReceipt.toLowerCase())) return false;
     if (filterFeeType !== "all" && p.feeType !== filterFeeType) return false;
     if (filterMonth !== "all" && p.feeMonth !== filterMonth) return false;
     if (filterMode !== "all" && p.paymentMode !== filterMode) return false;
@@ -317,6 +319,15 @@ export default function Payments() {
       <Card>
         <CardContent className="pt-4">
           <div className="flex flex-wrap items-center gap-3 mb-4">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search Receipt #"
+                value={searchReceipt}
+                onChange={(e) => setSearchReceipt(e.target.value)}
+                className="pl-8 w-[180px]"
+              />
+            </div>
             <Select value={filterFeeType} onValueChange={setFilterFeeType}>
               <SelectTrigger className="w-[140px]"><SelectValue placeholder="Fee Type" /></SelectTrigger>
               <SelectContent>
@@ -344,8 +355,8 @@ export default function Payments() {
                 <SelectItem value="cheque">Cheque</SelectItem>
               </SelectContent>
             </Select>
-            {(filterFeeType !== "all" || filterMonth !== "all" || filterMode !== "all") && (
-              <Button variant="ghost" size="sm" onClick={() => { setFilterFeeType("all"); setFilterMonth("all"); setFilterMode("all"); }}>
+            {(searchReceipt || filterFeeType !== "all" || filterMonth !== "all" || filterMode !== "all") && (
+              <Button variant="ghost" size="sm" onClick={() => { setSearchReceipt(""); setFilterFeeType("all"); setFilterMonth("all"); setFilterMode("all"); }}>
                 Clear Filters
               </Button>
             )}
