@@ -71,6 +71,7 @@ export type Database = {
           notes: string
           payment_mode: string
           receipt_number: string
+          receipt_printed: boolean
           student_id: string
         }
         Insert: {
@@ -84,6 +85,7 @@ export type Database = {
           notes?: string
           payment_mode?: string
           receipt_number?: string
+          receipt_printed?: boolean
           student_id: string
         }
         Update: {
@@ -97,6 +99,7 @@ export type Database = {
           notes?: string
           payment_mode?: string
           receipt_number?: string
+          receipt_printed?: boolean
           student_id?: string
         }
         Relationships: [

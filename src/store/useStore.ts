@@ -162,6 +162,7 @@ export function usePayments() {
           notes: p.notes,
           collectedBy: p.collected_by,
           paymentMode: p.payment_mode,
+          receiptPrinted: (p as any).receipt_printed ?? false,
         }))
       );
     }
@@ -170,7 +171,7 @@ export function usePayments() {
 
   useEffect(() => { fetchPayments(); }, [fetchPayments]);
 
-  const addPayment = useCallback(async (payment: Omit<Payment, "id" | "receiptNumber">) => {
+  const addPayment = useCallback(async (payment: Omit<Payment, "id" | "receiptNumber" | "receiptPrinted">) => {
     const receiptNumber = `RCP-${Date.now().toString(36).toUpperCase()}`;
     const { data } = await supabase
       .from("payments")

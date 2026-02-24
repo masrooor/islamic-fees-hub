@@ -27,6 +27,7 @@ export interface Payment {
   notes: string;
   collectedBy: string | null;
   paymentMode: string;
+  receiptPrinted: boolean;
 }
 
 export interface Teacher {

@@ -1,7 +1,8 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useStudents, usePayments } from "@/store/useStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -11,27 +12,40 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Printer } from "lucide-react";
+import { Printer, Search } from "lucide-react";
 import { formatPKR } from "@/lib/currency";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Receipts() {
   const { students } = useStudents();
   const { payments } = usePayments();
   const receiptRef = useRef<HTMLDivElement>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getStudentName = (id: string) =>
     students.find((s) => s.id === id)?.name ?? "Unknown";
   const getStudentClass = (id: string) =>
     students.find((s) => s.id === id)?.classGrade ?? "—";
 
-  const sortedPayments = [...payments].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  const sortedPayments = [...payments]
+    .filter((p) =>
+      searchQuery === "" ||
+      p.receiptNumber.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const handlePrint = (paymentId: string) => {
+  const handlePrint = async (paymentId: string) => {
     const payment = payments.find((p) => p.id === paymentId);
     if (!payment) return;
     const student = students.find((s) => s.id === payment.studentId);
+
+    const isOriginal = !(payment as any).receiptPrinted;
+    const copyLabel = isOriginal ? "Original" : "Duplicate";
+
+    // Mark as printed after first print
+    if (isOriginal) {
+      await supabase.from("payments").update({ receipt_printed: true } as any).eq("id", paymentId);
+    }
 
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
@@ -44,7 +58,8 @@ export default function Receipts() {
           .header { text-align: center; border-bottom: 2px solid #1a6b4a; padding-bottom: 16px; margin-bottom: 24px; }
           .header h1 { color: #1a6b4a; margin: 0; font-size: 22px; }
           .header p { color: #666; margin: 4px 0 0; font-size: 13px; }
-          .details { margin-bottom: 24px; }
+          .copy-label { text-align: right; font-size: 14px; font-weight: 700; color: ${isOriginal ? "#1a6b4a" : "#c0392b"}; margin-bottom: 12px; text-transform: uppercase; border: 2px solid ${isOriginal ? "#1a6b4a" : "#c0392b"}; display: inline-block; padding: 2px 10px; float: right; }
+          .details { margin-bottom: 24px; clear: both; }
           .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
           .label { color: #666; font-size: 14px; }
           .value { font-weight: 600; font-size: 14px; }
@@ -57,6 +72,7 @@ export default function Receipts() {
             <h1>☪ Islamic Education Center</h1>
             <p>Payment Receipt</p>
           </div>
+          <div class="copy-label">${copyLabel}</div>
           <div class="details">
             <div class="row"><span class="label">Receipt #</span><span class="value">${payment.receiptNumber}</span></div>
             <div class="row"><span class="label">Date</span><span class="value">${payment.date}</span></div>
@@ -76,11 +92,22 @@ export default function Receipts() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Receipts</h1>
-        <p className="text-sm text-muted-foreground">
-          View and print payment receipts
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Receipts</h1>
+          <p className="text-sm text-muted-foreground">
+            View and print payment receipts
+          </p>
+        </div>
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by Receipt #"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
       </div>
 
       <Card>

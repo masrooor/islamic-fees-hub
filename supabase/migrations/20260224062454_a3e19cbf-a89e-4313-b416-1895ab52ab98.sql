@@ -1,0 +1,1 @@
+ALTER TABLE public.payments ADD COLUMN receipt_printed boolean NOT NULL DEFAULT false;
