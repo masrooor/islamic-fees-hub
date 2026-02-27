@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Download, FileText, Search } from "lucide-react";
+import ProofUpload from "@/components/ProofUpload";
 import { downloadCSV } from "@/lib/exportCsv";
 import { format } from "date-fns";
 import { formatPKR } from "@/lib/currency";
