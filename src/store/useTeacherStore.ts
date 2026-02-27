@@ -131,6 +131,7 @@ export function useTeacherSalaries() {
       payment_mode: salary.paymentMode || "cash",
       receipt_url: salary.receiptUrl || "",
       custom_amount: salary.customAmount || 0,
+      proof_image_url: (salary as any).proofImageUrl || "",
     } as any);
     await fetchSalaries();
   }, [fetchSalaries]);

@@ -51,6 +51,7 @@ export function useTeacherAdvances() {
         date_given: advance.dateGiven,
         payment_mode: advance.paymentMode,
         notes: advance.notes,
+        proof_image_url: advance.proofImageUrl || "",
       } as any);
       await fetchAdvances();
     },
