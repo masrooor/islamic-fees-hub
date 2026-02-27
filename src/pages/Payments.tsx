@@ -285,7 +285,6 @@ export default function Payments() {
                   className="bg-muted"
                 />
               </div>
-              </div>
               <div>
                 <Label>Payment Date</Label>
                 <Input
