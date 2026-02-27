@@ -92,7 +92,8 @@ export default function TeacherSalaries() {
       teacherId: form.teacherId, month: form.month, baseSalary, loanDeduction: loanDeduction + advanceForMonth,
       otherDeduction: form.otherDeduction, netPaid, datePaid: form.datePaid, notes: form.notes,
       paymentMode: form.paymentMode, receiptUrl: form.receiptUrl,
-      customAmount: 0,
+      customAmount: 0, proofImageUrl: form.proofImageUrl,
+    } as any);
     });
     let remaining = loanDeduction;
     for (const loan of activeLoans) {
