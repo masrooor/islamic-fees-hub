@@ -21,6 +21,7 @@ export default function PendingSalaries() {
   const { teachers } = useTeachers();
   const { salaries, addSalary } = useTeacherSalaries();
   const { loans } = useTeacherLoans();
+  const { advances } = useTeacherAdvances();
 
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
 
