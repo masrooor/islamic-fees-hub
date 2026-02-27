@@ -85,6 +85,7 @@ export default function Payments() {
 
   const handleSubmit = () => {
     if (!form.studentId || form.amountPaid <= 0) return;
+    if (form.paymentMode === "online" && !form.proofImageUrl) { toast("Please upload payment proof for online payment"); return; }
     addPayment({
       ...form,
       collectedBy: user?.id ?? null,
