@@ -57,6 +57,30 @@ export default function Payments() {
     notes: "",
   });
 
+  // Auto-calculate next fee month when student is selected
+  const getNextFeeMonth = (studentId: string, feeType: string) => {
+    const studentPayments = payments
+      .filter((p) => p.studentId === studentId && p.feeType === feeType)
+      .map((p) => p.feeMonth)
+      .filter(Boolean)
+      .sort();
+    if (studentPayments.length === 0) return currentMonth;
+    const lastMonth = studentPayments[studentPayments.length - 1];
+    const [year, month] = lastMonth.split("-").map(Number);
+    const nextDate = new Date(year, month); // month is 0-indexed, so this gives next month
+    return format(nextDate, "yyyy-MM");
+  };
+
+  const handleStudentChange = (studentId: string) => {
+    const nextMonth = getNextFeeMonth(studentId, form.feeType);
+    setForm({ ...form, studentId, feeMonth: nextMonth });
+  };
+
+  const handleFeeTypeChange = (feeType: "tuition" | "registration") => {
+    const nextMonth = form.studentId ? getNextFeeMonth(form.studentId, feeType) : currentMonth;
+    setForm({ ...form, feeType, feeMonth: nextMonth });
+  };
+
   const handleSubmit = () => {
     if (!form.studentId || form.amountPaid <= 0) return;
     addPayment({
