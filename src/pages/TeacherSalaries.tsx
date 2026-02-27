@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useTeachers, useTeacherSalaries, useTeacherLoans } from "@/store/useTeacherStore";
+import { useTeacherAdvances } from "@/store/useTeacherAdvances";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ export default function TeacherSalaries() {
   const { teachers } = useTeachers();
   const { salaries, loading, addSalary } = useTeacherSalaries();
   const { loans, updateLoan } = useTeacherLoans();
+  const { advances } = useTeacherAdvances();
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [filterTeacher, setFilterTeacher] = useState("all");
@@ -38,6 +40,11 @@ export default function TeacherSalaries() {
   const totalLoanRemaining = activeLoans.reduce((s, l) => s + l.remaining, 0);
   const baseSalary = selectedTeacher?.monthlySalary ?? 0;
 
+  // Calculate advance already given for this month
+  const advanceForMonth = advances
+    .filter((a) => a.teacherId === form.teacherId && a.month === form.month)
+    .reduce((sum, a) => sum + a.amount, 0);
+
   // Calculate loan deduction based on each loan's repayment configuration
   const loanDeduction = activeLoans.reduce((total, loan) => {
     let deduction = 0;
@@ -47,13 +54,11 @@ export default function TeacherSalaries() {
       deduction = loan.repaymentAmount;
     } else if (loan.repaymentType === "specific_month" && loan.repaymentMonth === form.month) {
       deduction = loan.remaining;
-    } else if (loan.repaymentType === "manual") {
-      deduction = 0; // manual loans are not auto-deducted
     }
     return total + Math.min(deduction, loan.remaining);
   }, 0);
 
-  const netPaid = baseSalary - loanDeduction - form.otherDeduction;
+  const netPaid = baseSalary - loanDeduction - advanceForMonth - form.otherDeduction;
 
   const currentMonth = format(new Date(), "yyyy-MM");
   const paidTeacherIds = new Set(salaries.filter((s) => s.month === currentMonth).map((s) => s.teacherId));
@@ -81,7 +86,7 @@ export default function TeacherSalaries() {
   const handleSubmit = async () => {
     if (!form.teacherId) { toast.error("Select a teacher"); return; }
     await addSalary({
-      teacherId: form.teacherId, month: form.month, baseSalary, loanDeduction,
+      teacherId: form.teacherId, month: form.month, baseSalary, loanDeduction: loanDeduction + advanceForMonth,
       otherDeduction: form.otherDeduction, netPaid, datePaid: form.datePaid, notes: form.notes,
       paymentMode: form.paymentMode, receiptUrl: form.receiptUrl,
       customAmount: 0,
@@ -217,7 +222,8 @@ export default function TeacherSalaries() {
               {selectedTeacher && (
                 <div className="bg-muted p-3 rounded-md text-sm space-y-2">
                   <p>Base Salary: <strong>{formatPKR(baseSalary)}</strong></p>
-                  <p>Loan Deduction: <strong className="text-destructive">-{formatPKR(loanDeduction)}</strong></p>
+                  {loanDeduction > 0 && <p>Loan Deduction: <strong className="text-destructive">-{formatPKR(loanDeduction)}</strong></p>}
+                  {advanceForMonth > 0 && <p>Advance Already Paid: <strong className="text-destructive">-{formatPKR(advanceForMonth)}</strong></p>}
                   {activeLoans.length > 0 && (
                     <div className="space-y-1 border-t border-border pt-2 mt-1">
                       <p className="text-xs font-medium text-muted-foreground">Loan Breakdown:</p>
@@ -233,8 +239,6 @@ export default function TeacherSalaries() {
                         } else if (loan.repaymentType === "specific_month") {
                           deduction = loan.repaymentMonth === form.month ? loan.remaining : 0;
                           modeLabel = `Full return in ${loan.repaymentMonth}`;
-                        } else if (loan.repaymentType === "manual") {
-                          modeLabel = "Advance salary (manual)";
                         }
                         return (
                           <div key={loan.id} className="flex justify-between items-center text-xs">

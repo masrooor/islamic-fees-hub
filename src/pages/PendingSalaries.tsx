@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useTeachers, useTeacherSalaries, useTeacherLoans } from "@/store/useTeacherStore";
+import { useTeacherAdvances } from "@/store/useTeacherAdvances";
 import { formatPKR } from "@/lib/currency";
 import { format, subMonths } from "date-fns";
 import { AlertCircle, Wallet, Download } from "lucide-react";
@@ -20,6 +21,7 @@ export default function PendingSalaries() {
   const { teachers } = useTeachers();
   const { salaries, addSalary } = useTeacherSalaries();
   const { loans } = useTeacherLoans();
+  const { advances } = useTeacherAdvances();
 
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
 
@@ -106,10 +108,10 @@ export default function PendingSalaries() {
         }
         return sum;
       }, 0);
-      // Advance salary amounts (manual loans) count as already paid
-      const advanceTaken = activeLoans
-        .filter((l) => l.repaymentType === "manual")
-        .reduce((sum, l) => sum + l.remaining, 0);
+      // Advance salary amounts for this month
+      const advanceTaken = advances
+        .filter((a) => a.teacherId === teacher.id && a.month === selectedMonth)
+        .reduce((sum, a) => sum + a.amount, 0);
 
       const expectedSalary = teacher.monthlySalary - loanDeduction - advanceTaken;
       const paidAmount = paidTeachers.get(teacher.id) ?? 0;
@@ -157,7 +159,7 @@ export default function PendingSalaries() {
 
       return { teacher, baseSalary: teacher.monthlySalary, loanDeduction, advanceTaken, expectedSalary, paidAmount, pendingAmount, status, estCompletion };
     }).filter((d) => d.status !== "paid");
-  }, [activeTeachers, salaries, loans, selectedMonth]);
+  }, [activeTeachers, salaries, loans, advances, selectedMonth]);
 
   const totalPending = pendingData.reduce((s, d) => s + d.pendingAmount, 0);
 
