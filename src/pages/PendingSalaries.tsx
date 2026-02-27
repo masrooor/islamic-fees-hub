@@ -159,7 +159,7 @@ export default function PendingSalaries() {
 
       return { teacher, baseSalary: teacher.monthlySalary, loanDeduction, advanceTaken, expectedSalary, paidAmount, pendingAmount, status, estCompletion };
     }).filter((d) => d.status !== "paid");
-  }, [activeTeachers, salaries, loans, selectedMonth]);
+  }, [activeTeachers, salaries, loans, advances, selectedMonth]);
 
   const totalPending = pendingData.reduce((s, d) => s + d.pendingAmount, 0);
 
