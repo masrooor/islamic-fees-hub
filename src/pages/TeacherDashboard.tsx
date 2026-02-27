@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BarChart, Bar, XAxis, YAxis } from "recharts";
 import { useTeachers, useTeacherSalaries, useTeacherLoans } from "@/store/useTeacherStore";
+import { useTeacherAdvances } from "@/store/useTeacherAdvances";
 import { Briefcase, Banknote, Clock, AlertCircle, DollarSign, CreditCard } from "lucide-react";
 import { format, subMonths } from "date-fns";
 import { formatPKR } from "@/lib/currency";
@@ -25,12 +26,13 @@ const salaryChartConfig: ChartConfig = {
 export default function TeacherDashboard() {
   const { teachers } = useTeachers();
   const { salaries } = useTeacherSalaries();
-  const { loans, addLoan } = useTeacherLoans();
+  const { loans } = useTeacherLoans();
+  const { advances, addAdvance } = useTeacherAdvances();
 
   const [advanceOpen, setAdvanceOpen] = useState(false);
-  const [advanceForm, setAdvanceForm] = useState({ teacherId: "", amount: 0, notes: "", month: format(new Date(), "yyyy-MM"), paymentMode: "cash" as "cash" | "online" });
-
   const currentMonth = format(new Date(), "yyyy-MM");
+  const [advanceForm, setAdvanceForm] = useState({ teacherId: "", amount: 0, notes: "", paymentMode: "cash" as "cash" | "online" });
+
   const currentYear = new Date().getFullYear().toString();
 
   const activeTeachers = teachers.filter((t) => t.status === "active");
@@ -73,21 +75,28 @@ export default function TeacherDashboard() {
     if (advanceForm.amount <= 0) { toast.error("Enter a valid amount"); return; }
     const teacher = teachers.find((t) => t.id === advanceForm.teacherId);
     if (!teacher) return;
-    await addLoan({
+
+    // Check if advance exceeds remaining salary for the month
+    const existingAdvances = advances
+      .filter((a) => a.teacherId === advanceForm.teacherId && a.month === currentMonth)
+      .reduce((sum, a) => sum + a.amount, 0);
+    const remaining = teacher.monthlySalary - existingAdvances;
+    if (advanceForm.amount > remaining) {
+      toast.error(`Maximum advance available: ${formatPKR(remaining)} (already advanced: ${formatPKR(existingAdvances)})`);
+      return;
+    }
+
+    await addAdvance({
       teacherId: advanceForm.teacherId,
+      month: currentMonth,
       amount: advanceForm.amount,
-      remaining: advanceForm.amount,
-      dateIssued: format(new Date(), "yyyy-MM-dd"),
+      dateGiven: format(new Date(), "yyyy-MM-dd"),
+      paymentMode: advanceForm.paymentMode,
       notes: advanceForm.notes || "Advance salary",
-      status: "active",
-      repaymentType: "manual",
-      repaymentMonth: null,
-      repaymentPercentage: null,
-      repaymentAmount: null,
     });
-    toast.success(`Advance of ${formatPKR(advanceForm.amount)} issued to ${teacher.name}`);
+    toast.success(`Advance of ${formatPKR(advanceForm.amount)} issued to ${teacher.name} for current month`);
     setAdvanceOpen(false);
-    setAdvanceForm({ teacherId: "", amount: 0, notes: "", month: format(new Date(), "yyyy-MM"), paymentMode: "cash" });
+    setAdvanceForm({ teacherId: "", amount: 0, notes: "", paymentMode: "cash" });
   };
 
   const teacherCards = [
@@ -112,7 +121,9 @@ export default function TeacherDashboard() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Issue Advance Salary</DialogTitle></DialogHeader>
-            <p className="text-sm text-muted-foreground">This will be recorded as a loan and deducted from future salaries automatically.</p>
+            <p className="text-sm text-muted-foreground">
+              Give advance salary for the current month (<strong>{format(new Date(), "MMMM yyyy")}</strong>). This amount will be automatically deducted when full salary is paid.
+            </p>
             <div className="space-y-3 mt-2">
               <div>
                 <Label>Teacher</Label>
@@ -125,10 +136,20 @@ export default function TeacherDashboard() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Month</Label>
-                <Input type="month" value={advanceForm.month} onChange={(e) => setAdvanceForm({ ...advanceForm, month: e.target.value })} />
-              </div>
+              {advanceForm.teacherId && (() => {
+                const teacher = teachers.find((t) => t.id === advanceForm.teacherId);
+                const existingAdv = advances
+                  .filter((a) => a.teacherId === advanceForm.teacherId && a.month === currentMonth)
+                  .reduce((sum, a) => sum + a.amount, 0);
+                const remaining = (teacher?.monthlySalary ?? 0) - existingAdv;
+                return (
+                  <div className="bg-muted p-3 rounded-md text-sm space-y-1">
+                    <p>Monthly Salary: <strong>{formatPKR(teacher?.monthlySalary ?? 0)}</strong></p>
+                    {existingAdv > 0 && <p>Already Advanced: <strong className="text-destructive">{formatPKR(existingAdv)}</strong></p>}
+                    <p>Available for Advance: <strong className="text-primary">{formatPKR(remaining)}</strong></p>
+                  </div>
+                );
+              })()}
               <div>
                 <Label>Amount</Label>
                 <Input type="number" value={advanceForm.amount} onChange={(e) => setAdvanceForm({ ...advanceForm, amount: Number(e.target.value) })} placeholder="Enter amount" />
