@@ -74,6 +74,7 @@ export default function TeacherDashboard() {
   const handleAdvanceSalary = async () => {
     if (!advanceForm.teacherId) { toast.error("Select a teacher"); return; }
     if (advanceForm.amount <= 0) { toast.error("Enter a valid amount"); return; }
+    if (advanceForm.paymentMode === "online" && !advanceForm.proofImageUrl) { toast.error("Please upload payment proof for online payment"); return; }
     const teacher = teachers.find((t) => t.id === advanceForm.teacherId);
     if (!teacher) return;
 
