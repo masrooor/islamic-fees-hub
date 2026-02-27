@@ -86,7 +86,7 @@ export default function TeacherSalaries() {
   const handleSubmit = async () => {
     if (!form.teacherId) { toast.error("Select a teacher"); return; }
     await addSalary({
-      teacherId: form.teacherId, month: form.month, baseSalary, loanDeduction,
+      teacherId: form.teacherId, month: form.month, baseSalary, loanDeduction: loanDeduction + advanceForMonth,
       otherDeduction: form.otherDeduction, netPaid, datePaid: form.datePaid, notes: form.notes,
       paymentMode: form.paymentMode, receiptUrl: form.receiptUrl,
       customAmount: 0,
