@@ -40,6 +40,7 @@ export default function PendingSalaries() {
     setPayAmount(String(pending));
     setPayMode("cash");
     setPayNotes("");
+    setPayProofUrl("");
     setPayOpen(true);
   };
 
