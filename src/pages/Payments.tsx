@@ -249,9 +249,8 @@ export default function Payments() {
                 <Label>Fee Type *</Label>
                 <Select
                   value={form.feeType}
-                  onValueChange={(v: "tuition" | "registration") =>
-                    setForm({ ...form, feeType: v })
-                  }
+                  onValueChange={handleFeeTypeChange}
+                >
                 >
                   <SelectTrigger>
                     <SelectValue />
