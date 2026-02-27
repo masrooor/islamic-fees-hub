@@ -95,6 +95,7 @@ export default function TeacherDashboard() {
       dateGiven: format(new Date(), "yyyy-MM-dd"),
       paymentMode: advanceForm.paymentMode,
       notes: advanceForm.notes || "Advance salary",
+      proofImageUrl: advanceForm.proofImageUrl,
     });
     toast.success(`Advance of ${formatPKR(advanceForm.amount)} issued to ${teacher.name} for current month`);
     setAdvanceOpen(false);
