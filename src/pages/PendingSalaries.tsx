@@ -51,6 +51,10 @@ export default function PendingSalaries() {
       toast.error("Enter a valid amount");
       return;
     }
+    if (payMode === "online" && !payProofUrl) {
+      toast.error("Please upload payment proof for online payment");
+      return;
+    }
     if (amount > payTeacher.pending) {
       toast.error(`Maximum payable amount is ${formatPKR(payTeacher.pending)} (advance salary already deducted)`);
       return;
