@@ -73,7 +73,8 @@ export default function PendingSalaries() {
         paymentMode: payMode as "cash" | "online",
         receiptUrl: "",
         customAmount: amount !== payTeacher.pending ? amount : 0,
-      });
+        proofImageUrl: payProofUrl,
+      } as any);
       toast.success(`Salary of ${formatPKR(amount)} paid to ${payTeacher.teacher.name}`);
       setPayOpen(false);
     } catch {
