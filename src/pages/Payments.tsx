@@ -56,6 +56,7 @@ export default function Payments() {
     feeMonth: currentMonth,
     paymentMode: "cash",
     notes: "",
+    proofImageUrl: "",
   });
 
   // Auto-calculate next fee month when student is selected
