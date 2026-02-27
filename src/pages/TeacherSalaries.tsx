@@ -34,6 +34,7 @@ export default function TeacherSalaries() {
     datePaid: format(new Date(), "yyyy-MM-dd"),
     paymentMode: "cash" as "cash" | "online",
     receiptUrl: "",
+    proofImageUrl: "",
   });
 
   const selectedTeacher = teachers.find((t) => t.id === form.teacherId);
