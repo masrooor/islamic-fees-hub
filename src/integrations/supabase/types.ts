@@ -70,6 +70,7 @@ export type Database = {
           id: string
           notes: string
           payment_mode: string
+          proof_image_url: string
           receipt_number: string
           receipt_printed: boolean
           student_id: string
@@ -84,6 +85,7 @@ export type Database = {
           id?: string
           notes?: string
           payment_mode?: string
+          proof_image_url?: string
           receipt_number?: string
           receipt_printed?: boolean
           student_id: string
@@ -98,6 +100,7 @@ export type Database = {
           id?: string
           notes?: string
           payment_mode?: string
+          proof_image_url?: string
           receipt_number?: string
           receipt_printed?: boolean
           student_id?: string
@@ -157,6 +160,7 @@ export type Database = {
           month: string
           notes: string
           payment_mode: string
+          proof_image_url: string
           teacher_id: string
         }
         Insert: {
@@ -167,6 +171,7 @@ export type Database = {
           month: string
           notes?: string
           payment_mode?: string
+          proof_image_url?: string
           teacher_id: string
         }
         Update: {
@@ -177,6 +182,7 @@ export type Database = {
           month?: string
           notes?: string
           payment_mode?: string
+          proof_image_url?: string
           teacher_id?: string
         }
         Relationships: [
@@ -293,6 +299,7 @@ export type Database = {
           notes: string
           other_deduction: number
           payment_mode: string
+          proof_image_url: string
           receipt_url: string
           teacher_id: string
         }
@@ -308,6 +315,7 @@ export type Database = {
           notes?: string
           other_deduction?: number
           payment_mode?: string
+          proof_image_url?: string
           receipt_url?: string
           teacher_id: string
         }
@@ -323,6 +331,7 @@ export type Database = {
           notes?: string
           other_deduction?: number
           payment_mode?: string
+          proof_image_url?: string
           receipt_url?: string
           teacher_id?: string
         }
