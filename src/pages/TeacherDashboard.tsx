@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import ProofUpload from "@/components/ProofUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
