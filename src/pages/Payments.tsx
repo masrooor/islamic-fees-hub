@@ -276,12 +276,15 @@ export default function Payments() {
                 />
               </div>
               <div>
-                <Label>Fee Month *</Label>
+                <Label>Fee Month (auto-calculated)</Label>
                 <Input
-                  type="month"
-                  value={form.feeMonth}
-                  onChange={(e) => setForm({ ...form, feeMonth: e.target.value })}
+                  type="text"
+                  value={formatFeeMonth(form.feeMonth)}
+                  readOnly
+                  disabled
+                  className="bg-muted"
                 />
+              </div>
               </div>
               <div>
                 <Label>Payment Date</Label>
