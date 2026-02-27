@@ -19,6 +19,7 @@ export default function TeacherSalaries() {
   const { teachers } = useTeachers();
   const { salaries, loading, addSalary } = useTeacherSalaries();
   const { loans, updateLoan } = useTeacherLoans();
+  const { advances } = useTeacherAdvances();
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [filterTeacher, setFilterTeacher] = useState("all");
