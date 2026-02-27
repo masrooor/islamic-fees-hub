@@ -9,6 +9,7 @@ export interface TeacherAdvance {
   dateGiven: string;
   paymentMode: string;
   notes: string;
+  proofImageUrl: string;
 }
 
 export function useTeacherAdvances() {
@@ -31,6 +32,7 @@ export function useTeacherAdvances() {
           dateGiven: a.date_given,
           paymentMode: a.payment_mode,
           notes: a.notes,
+          proofImageUrl: a.proof_image_url || "",
         }))
       );
     }
@@ -50,6 +52,7 @@ export function useTeacherAdvances() {
         date_given: advance.dateGiven,
         payment_mode: advance.paymentMode,
         notes: advance.notes,
+        proof_image_url: advance.proofImageUrl || "",
       } as any);
       await fetchAdvances();
     },

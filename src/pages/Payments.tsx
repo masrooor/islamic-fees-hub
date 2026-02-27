@@ -30,8 +30,10 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Download, FileText, Search } from "lucide-react";
+import ProofUpload from "@/components/ProofUpload";
 import { downloadCSV } from "@/lib/exportCsv";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import { formatPKR } from "@/lib/currency";
 import { formatFeeMonth } from "@/lib/formatMonth";
 
@@ -55,6 +57,7 @@ export default function Payments() {
     feeMonth: currentMonth,
     paymentMode: "cash",
     notes: "",
+    proofImageUrl: "",
   });
 
   // Auto-calculate next fee month when student is selected
@@ -83,10 +86,12 @@ export default function Payments() {
 
   const handleSubmit = () => {
     if (!form.studentId || form.amountPaid <= 0) return;
+    if (form.paymentMode === "online" && !form.proofImageUrl) { toast("Please upload payment proof for online payment"); return; }
     addPayment({
       ...form,
       collectedBy: user?.id ?? null,
-    });
+      proofImageUrl: form.proofImageUrl,
+    } as any);
     setForm({
       studentId: "",
       feeType: "tuition",
@@ -95,6 +100,7 @@ export default function Payments() {
       feeMonth: currentMonth,
       paymentMode: "cash",
       notes: "",
+      proofImageUrl: "",
     });
     setDialogOpen(false);
   };
@@ -309,6 +315,13 @@ export default function Payments() {
                   </SelectContent>
                 </Select>
               </div>
+              {form.paymentMode === "online" && (
+                <ProofUpload
+                  value={form.proofImageUrl}
+                  onChange={(url) => setForm({ ...form, proofImageUrl: url })}
+                  required
+                />
+              )}
               <div>
                 <Label>Notes</Label>
                 <Textarea

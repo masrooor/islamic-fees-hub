@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import ProofUpload from "@/components/ProofUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,7 +32,7 @@ export default function TeacherDashboard() {
 
   const [advanceOpen, setAdvanceOpen] = useState(false);
   const currentMonth = format(new Date(), "yyyy-MM");
-  const [advanceForm, setAdvanceForm] = useState({ teacherId: "", amount: 0, notes: "", paymentMode: "cash" as "cash" | "online" });
+  const [advanceForm, setAdvanceForm] = useState({ teacherId: "", amount: 0, notes: "", paymentMode: "cash" as "cash" | "online", proofImageUrl: "" });
 
   const currentYear = new Date().getFullYear().toString();
 
@@ -73,6 +74,7 @@ export default function TeacherDashboard() {
   const handleAdvanceSalary = async () => {
     if (!advanceForm.teacherId) { toast.error("Select a teacher"); return; }
     if (advanceForm.amount <= 0) { toast.error("Enter a valid amount"); return; }
+    if (advanceForm.paymentMode === "online" && !advanceForm.proofImageUrl) { toast.error("Please upload payment proof for online payment"); return; }
     const teacher = teachers.find((t) => t.id === advanceForm.teacherId);
     if (!teacher) return;
 
@@ -93,10 +95,11 @@ export default function TeacherDashboard() {
       dateGiven: format(new Date(), "yyyy-MM-dd"),
       paymentMode: advanceForm.paymentMode,
       notes: advanceForm.notes || "Advance salary",
+      proofImageUrl: advanceForm.proofImageUrl,
     });
     toast.success(`Advance of ${formatPKR(advanceForm.amount)} issued to ${teacher.name} for current month`);
     setAdvanceOpen(false);
-    setAdvanceForm({ teacherId: "", amount: 0, notes: "", paymentMode: "cash" });
+    setAdvanceForm({ teacherId: "", amount: 0, notes: "", paymentMode: "cash", proofImageUrl: "" });
   };
 
   const teacherCards = [
@@ -162,8 +165,15 @@ export default function TeacherDashboard() {
                     <SelectItem value="cash">Cash</SelectItem>
                     <SelectItem value="online">Online</SelectItem>
                   </SelectContent>
-                </Select>
+              </Select>
               </div>
+              {advanceForm.paymentMode === "online" && (
+                <ProofUpload
+                  value={advanceForm.proofImageUrl}
+                  onChange={(url) => setAdvanceForm({ ...advanceForm, proofImageUrl: url })}
+                  required
+                />
+              )}
               <div>
                 <Label>Notes</Label>
                 <Input value={advanceForm.notes} onChange={(e) => setAdvanceForm({ ...advanceForm, notes: e.target.value })} placeholder="e.g. Advance for Eid" />

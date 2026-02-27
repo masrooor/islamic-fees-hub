@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, AlertCircle, Upload, Printer } from "lucide-react";
+import ProofUpload from "@/components/ProofUpload";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatPKR } from "@/lib/currency";
@@ -33,6 +34,7 @@ export default function TeacherSalaries() {
     datePaid: format(new Date(), "yyyy-MM-dd"),
     paymentMode: "cash" as "cash" | "online",
     receiptUrl: "",
+    proofImageUrl: "",
   });
 
   const selectedTeacher = teachers.find((t) => t.id === form.teacherId);
@@ -85,12 +87,13 @@ export default function TeacherSalaries() {
 
   const handleSubmit = async () => {
     if (!form.teacherId) { toast.error("Select a teacher"); return; }
+    if (form.paymentMode === "online" && !form.proofImageUrl) { toast.error("Please upload payment proof for online payment"); return; }
     await addSalary({
       teacherId: form.teacherId, month: form.month, baseSalary, loanDeduction: loanDeduction + advanceForMonth,
       otherDeduction: form.otherDeduction, netPaid, datePaid: form.datePaid, notes: form.notes,
       paymentMode: form.paymentMode, receiptUrl: form.receiptUrl,
-      customAmount: 0,
-    });
+      customAmount: 0, proofImageUrl: form.proofImageUrl,
+    } as any);
     let remaining = loanDeduction;
     for (const loan of activeLoans) {
       if (remaining <= 0) break;
@@ -103,7 +106,7 @@ export default function TeacherSalaries() {
     setOpen(false);
     setForm({
       teacherId: "", month: format(new Date(), "yyyy-MM"), otherDeduction: 0, notes: "",
-      datePaid: format(new Date(), "yyyy-MM-dd"), paymentMode: "cash", receiptUrl: "",
+      datePaid: format(new Date(), "yyyy-MM-dd"), paymentMode: "cash", receiptUrl: "", proofImageUrl: "",
     });
   };
 
@@ -207,16 +210,13 @@ export default function TeacherSalaries() {
                 </Select>
               </div>
 
-              {/* Receipt upload for online */}
+              {/* Receipt/Proof upload for online */}
               {form.paymentMode === "online" && (
-                <div>
-                  <Label>Attach Receipt</Label>
-                  <div className="flex items-center gap-2">
-                    <Input type="file" accept="image/*,.pdf" onChange={handleReceiptUpload} disabled={uploading} />
-                    {uploading && <span className="text-xs text-muted-foreground">Uploading...</span>}
-                  </div>
-                  {form.receiptUrl && <p className="text-xs text-primary mt-1">✓ Receipt attached</p>}
-                </div>
+                <ProofUpload
+                  value={form.proofImageUrl}
+                  onChange={(url) => setForm({ ...form, proofImageUrl: url })}
+                  required
+                />
               )}
 
               {selectedTeacher && (

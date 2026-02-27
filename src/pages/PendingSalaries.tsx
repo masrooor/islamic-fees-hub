@@ -12,6 +12,7 @@ import { useTeacherAdvances } from "@/store/useTeacherAdvances";
 import { formatPKR } from "@/lib/currency";
 import { format, subMonths } from "date-fns";
 import { AlertCircle, Wallet, Download } from "lucide-react";
+import ProofUpload from "@/components/ProofUpload";
 import { downloadCSV } from "@/lib/exportCsv";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -31,6 +32,7 @@ export default function PendingSalaries() {
   const [payAmount, setPayAmount] = useState("");
   const [payMode, setPayMode] = useState("cash");
   const [payNotes, setPayNotes] = useState("");
+  const [payProofUrl, setPayProofUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const openPayDialog = (teacher: Teacher, pending: number, loanDeduction: number) => {
@@ -38,6 +40,7 @@ export default function PendingSalaries() {
     setPayAmount(String(pending));
     setPayMode("cash");
     setPayNotes("");
+    setPayProofUrl("");
     setPayOpen(true);
   };
 
@@ -46,6 +49,10 @@ export default function PendingSalaries() {
     const amount = Number(payAmount);
     if (isNaN(amount) || amount <= 0) {
       toast.error("Enter a valid amount");
+      return;
+    }
+    if (payMode === "online" && !payProofUrl) {
+      toast.error("Please upload payment proof for online payment");
       return;
     }
     if (amount > payTeacher.pending) {
@@ -66,7 +73,8 @@ export default function PendingSalaries() {
         paymentMode: payMode as "cash" | "online",
         receiptUrl: "",
         customAmount: amount !== payTeacher.pending ? amount : 0,
-      });
+        proofImageUrl: payProofUrl,
+      } as any);
       toast.success(`Salary of ${formatPKR(amount)} paid to ${payTeacher.teacher.name}`);
       setPayOpen(false);
     } catch {
@@ -318,6 +326,13 @@ export default function PendingSalaries() {
                 </SelectContent>
               </Select>
             </div>
+            {payMode === "online" && (
+              <ProofUpload
+                value={payProofUrl}
+                onChange={setPayProofUrl}
+                required
+              />
+            )}
             <div className="space-y-2">
               <Label>Notes (optional)</Label>
               <Textarea value={payNotes} onChange={(e) => setPayNotes(e.target.value)} placeholder="Any notes..." />

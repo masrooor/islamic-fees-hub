@@ -185,6 +185,7 @@ export function usePayments() {
         notes: payment.notes,
         collected_by: payment.collectedBy,
         payment_mode: payment.paymentMode,
+        proof_image_url: (payment as any).proofImageUrl || "",
       })
       .select()
       .single();
