@@ -211,16 +211,13 @@ export default function TeacherSalaries() {
                 </Select>
               </div>
 
-              {/* Receipt upload for online */}
+              {/* Receipt/Proof upload for online */}
               {form.paymentMode === "online" && (
-                <div>
-                  <Label>Attach Receipt</Label>
-                  <div className="flex items-center gap-2">
-                    <Input type="file" accept="image/*,.pdf" onChange={handleReceiptUpload} disabled={uploading} />
-                    {uploading && <span className="text-xs text-muted-foreground">Uploading...</span>}
-                  </div>
-                  {form.receiptUrl && <p className="text-xs text-primary mt-1">✓ Receipt attached</p>}
-                </div>
+                <ProofUpload
+                  value={form.proofImageUrl}
+                  onChange={(url) => setForm({ ...form, proofImageUrl: url })}
+                  required
+                />
               )}
 
               {selectedTeacher && (
