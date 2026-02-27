@@ -314,6 +314,13 @@ export default function Payments() {
                   </SelectContent>
                 </Select>
               </div>
+              {form.paymentMode === "online" && (
+                <ProofUpload
+                  value={form.proofImageUrl}
+                  onChange={(url) => setForm({ ...form, proofImageUrl: url })}
+                  required
+                />
+              )}
               <div>
                 <Label>Notes</Label>
                 <Textarea

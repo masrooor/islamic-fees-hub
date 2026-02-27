@@ -326,6 +326,13 @@ export default function PendingSalaries() {
                 </SelectContent>
               </Select>
             </div>
+            {payMode === "online" && (
+              <ProofUpload
+                value={payProofUrl}
+                onChange={setPayProofUrl}
+                required
+              />
+            )}
             <div className="space-y-2">
               <Label>Notes (optional)</Label>
               <Textarea value={payNotes} onChange={(e) => setPayNotes(e.target.value)} placeholder="Any notes..." />
