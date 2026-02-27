@@ -107,7 +107,7 @@ export default function TeacherSalaries() {
     setOpen(false);
     setForm({
       teacherId: "", month: format(new Date(), "yyyy-MM"), otherDeduction: 0, notes: "",
-      datePaid: format(new Date(), "yyyy-MM-dd"), paymentMode: "cash", receiptUrl: "",
+      datePaid: format(new Date(), "yyyy-MM-dd"), paymentMode: "cash", receiptUrl: "", proofImageUrl: "",
     });
   };
 
