@@ -229,7 +229,7 @@ export default function Payments() {
                 <Label>Student *</Label>
                 <Select
                   value={form.studentId}
-                  onValueChange={(v) => setForm({ ...form, studentId: v })}
+                  onValueChange={handleStudentChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select student" />
