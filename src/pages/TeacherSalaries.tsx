@@ -94,7 +94,6 @@ export default function TeacherSalaries() {
       paymentMode: form.paymentMode, receiptUrl: form.receiptUrl,
       customAmount: 0, proofImageUrl: form.proofImageUrl,
     } as any);
-    });
     let remaining = loanDeduction;
     for (const loan of activeLoans) {
       if (remaining <= 0) break;
