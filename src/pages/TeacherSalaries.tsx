@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useTeachers, useTeacherSalaries, useTeacherLoans } from "@/store/useTeacherStore";
+import { useTeacherAdvances } from "@/store/useTeacherAdvances";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
