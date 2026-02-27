@@ -32,7 +32,7 @@ export default function TeacherDashboard() {
 
   const [advanceOpen, setAdvanceOpen] = useState(false);
   const currentMonth = format(new Date(), "yyyy-MM");
-  const [advanceForm, setAdvanceForm] = useState({ teacherId: "", amount: 0, notes: "", paymentMode: "cash" as "cash" | "online" });
+  const [advanceForm, setAdvanceForm] = useState({ teacherId: "", amount: 0, notes: "", paymentMode: "cash" as "cash" | "online", proofImageUrl: "" });
 
   const currentYear = new Date().getFullYear().toString();
 
