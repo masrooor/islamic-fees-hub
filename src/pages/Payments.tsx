@@ -89,7 +89,8 @@ export default function Payments() {
     addPayment({
       ...form,
       collectedBy: user?.id ?? null,
-    });
+      proofImageUrl: form.proofImageUrl,
+    } as any);
     setForm({
       studentId: "",
       feeType: "tuition",
