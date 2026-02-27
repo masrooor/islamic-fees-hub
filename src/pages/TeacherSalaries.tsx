@@ -87,6 +87,7 @@ export default function TeacherSalaries() {
 
   const handleSubmit = async () => {
     if (!form.teacherId) { toast.error("Select a teacher"); return; }
+    if (form.paymentMode === "online" && !form.proofImageUrl) { toast.error("Please upload payment proof for online payment"); return; }
     await addSalary({
       teacherId: form.teacherId, month: form.month, baseSalary, loanDeduction: loanDeduction + advanceForMonth,
       otherDeduction: form.otherDeduction, netPaid, datePaid: form.datePaid, notes: form.notes,
