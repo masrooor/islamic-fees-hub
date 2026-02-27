@@ -57,6 +57,30 @@ export default function Payments() {
     notes: "",
   });
 
+  // Auto-calculate next fee month when student is selected
+  const getNextFeeMonth = (studentId: string, feeType: string) => {
+    const studentPayments = payments
+      .filter((p) => p.studentId === studentId && p.feeType === feeType)
+      .map((p) => p.feeMonth)
+      .filter(Boolean)
+      .sort();
+    if (studentPayments.length === 0) return currentMonth;
+    const lastMonth = studentPayments[studentPayments.length - 1];
+    const [year, month] = lastMonth.split("-").map(Number);
+    const nextDate = new Date(year, month); // month is 0-indexed, so this gives next month
+    return format(nextDate, "yyyy-MM");
+  };
+
+  const handleStudentChange = (studentId: string) => {
+    const nextMonth = getNextFeeMonth(studentId, form.feeType);
+    setForm({ ...form, studentId, feeMonth: nextMonth });
+  };
+
+  const handleFeeTypeChange = (feeType: "tuition" | "registration") => {
+    const nextMonth = form.studentId ? getNextFeeMonth(form.studentId, feeType) : currentMonth;
+    setForm({ ...form, feeType, feeMonth: nextMonth });
+  };
+
   const handleSubmit = () => {
     if (!form.studentId || form.amountPaid <= 0) return;
     addPayment({
@@ -205,7 +229,7 @@ export default function Payments() {
                 <Label>Student *</Label>
                 <Select
                   value={form.studentId}
-                  onValueChange={(v) => setForm({ ...form, studentId: v })}
+                  onValueChange={handleStudentChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select student" />
@@ -225,9 +249,7 @@ export default function Payments() {
                 <Label>Fee Type *</Label>
                 <Select
                   value={form.feeType}
-                  onValueChange={(v: "tuition" | "registration") =>
-                    setForm({ ...form, feeType: v })
-                  }
+                  onValueChange={handleFeeTypeChange}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -253,11 +275,13 @@ export default function Payments() {
                 />
               </div>
               <div>
-                <Label>Fee Month *</Label>
+                <Label>Fee Month (auto-calculated)</Label>
                 <Input
-                  type="month"
-                  value={form.feeMonth}
-                  onChange={(e) => setForm({ ...form, feeMonth: e.target.value })}
+                  type="text"
+                  value={formatFeeMonth(form.feeMonth)}
+                  readOnly
+                  disabled
+                  className="bg-muted"
                 />
               </div>
               <div>
