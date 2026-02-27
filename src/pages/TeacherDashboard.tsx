@@ -99,7 +99,7 @@ export default function TeacherDashboard() {
     });
     toast.success(`Advance of ${formatPKR(advanceForm.amount)} issued to ${teacher.name} for current month`);
     setAdvanceOpen(false);
-    setAdvanceForm({ teacherId: "", amount: 0, notes: "", paymentMode: "cash" });
+    setAdvanceForm({ teacherId: "", amount: 0, notes: "", paymentMode: "cash", proofImageUrl: "" });
   };
 
   const teacherCards = [
