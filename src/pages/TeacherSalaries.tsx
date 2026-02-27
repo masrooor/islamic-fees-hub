@@ -222,7 +222,8 @@ export default function TeacherSalaries() {
               {selectedTeacher && (
                 <div className="bg-muted p-3 rounded-md text-sm space-y-2">
                   <p>Base Salary: <strong>{formatPKR(baseSalary)}</strong></p>
-                  <p>Loan Deduction: <strong className="text-destructive">-{formatPKR(loanDeduction)}</strong></p>
+                  {loanDeduction > 0 && <p>Loan Deduction: <strong className="text-destructive">-{formatPKR(loanDeduction)}</strong></p>}
+                  {advanceForMonth > 0 && <p>Advance Already Paid: <strong className="text-destructive">-{formatPKR(advanceForMonth)}</strong></p>}
                   {activeLoans.length > 0 && (
                     <div className="space-y-1 border-t border-border pt-2 mt-1">
                       <p className="text-xs font-medium text-muted-foreground">Loan Breakdown:</p>
@@ -238,8 +239,6 @@ export default function TeacherSalaries() {
                         } else if (loan.repaymentType === "specific_month") {
                           deduction = loan.repaymentMonth === form.month ? loan.remaining : 0;
                           modeLabel = `Full return in ${loan.repaymentMonth}`;
-                        } else if (loan.repaymentType === "manual") {
-                          modeLabel = "Advance salary (manual)";
                         }
                         return (
                           <div key={loan.id} className="flex justify-between items-center text-xs">
