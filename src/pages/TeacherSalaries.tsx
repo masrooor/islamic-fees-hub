@@ -40,6 +40,11 @@ export default function TeacherSalaries() {
   const totalLoanRemaining = activeLoans.reduce((s, l) => s + l.remaining, 0);
   const baseSalary = selectedTeacher?.monthlySalary ?? 0;
 
+  // Calculate advance already given for this month
+  const advanceForMonth = advances
+    .filter((a) => a.teacherId === form.teacherId && a.month === form.month)
+    .reduce((sum, a) => sum + a.amount, 0);
+
   // Calculate loan deduction based on each loan's repayment configuration
   const loanDeduction = activeLoans.reduce((total, loan) => {
     let deduction = 0;
@@ -49,13 +54,11 @@ export default function TeacherSalaries() {
       deduction = loan.repaymentAmount;
     } else if (loan.repaymentType === "specific_month" && loan.repaymentMonth === form.month) {
       deduction = loan.remaining;
-    } else if (loan.repaymentType === "manual") {
-      deduction = 0; // manual loans are not auto-deducted
     }
     return total + Math.min(deduction, loan.remaining);
   }, 0);
 
-  const netPaid = baseSalary - loanDeduction - form.otherDeduction;
+  const netPaid = baseSalary - loanDeduction - advanceForMonth - form.otherDeduction;
 
   const currentMonth = format(new Date(), "yyyy-MM");
   const paidTeacherIds = new Set(salaries.filter((s) => s.month === currentMonth).map((s) => s.teacherId));
