@@ -251,7 +251,6 @@ export default function Payments() {
                   value={form.feeType}
                   onValueChange={handleFeeTypeChange}
                 >
-                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
