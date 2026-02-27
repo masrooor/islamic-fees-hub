@@ -32,6 +32,7 @@ export default function PendingSalaries() {
   const [payAmount, setPayAmount] = useState("");
   const [payMode, setPayMode] = useState("cash");
   const [payNotes, setPayNotes] = useState("");
+  const [payProofUrl, setPayProofUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const openPayDialog = (teacher: Teacher, pending: number, loanDeduction: number) => {
