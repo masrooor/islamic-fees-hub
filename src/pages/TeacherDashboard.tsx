@@ -165,8 +165,15 @@ export default function TeacherDashboard() {
                     <SelectItem value="cash">Cash</SelectItem>
                     <SelectItem value="online">Online</SelectItem>
                   </SelectContent>
-                </Select>
+              </Select>
               </div>
+              {advanceForm.paymentMode === "online" && (
+                <ProofUpload
+                  value={advanceForm.proofImageUrl}
+                  onChange={(url) => setAdvanceForm({ ...advanceForm, proofImageUrl: url })}
+                  required
+                />
+              )}
               <div>
                 <Label>Notes</Label>
                 <Input value={advanceForm.notes} onChange={(e) => setAdvanceForm({ ...advanceForm, notes: e.target.value })} placeholder="e.g. Advance for Eid" />
