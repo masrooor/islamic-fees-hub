@@ -108,10 +108,10 @@ export default function PendingSalaries() {
         }
         return sum;
       }, 0);
-      // Advance salary amounts (manual loans) count as already paid
-      const advanceTaken = activeLoans
-        .filter((l) => l.repaymentType === "manual")
-        .reduce((sum, l) => sum + l.remaining, 0);
+      // Advance salary amounts for this month
+      const advanceTaken = advances
+        .filter((a) => a.teacherId === teacher.id && a.month === selectedMonth)
+        .reduce((sum, a) => sum + a.amount, 0);
 
       const expectedSalary = teacher.monthlySalary - loanDeduction - advanceTaken;
       const paidAmount = paidTeachers.get(teacher.id) ?? 0;
