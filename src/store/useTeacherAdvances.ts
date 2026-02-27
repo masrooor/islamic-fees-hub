@@ -9,6 +9,7 @@ export interface TeacherAdvance {
   dateGiven: string;
   paymentMode: string;
   notes: string;
+  proofImageUrl: string;
 }
 
 export function useTeacherAdvances() {
