@@ -99,6 +99,7 @@ export default function Payments() {
       feeMonth: currentMonth,
       paymentMode: "cash",
       notes: "",
+      proofImageUrl: "",
     });
     setDialogOpen(false);
   };
