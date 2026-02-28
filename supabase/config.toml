@@ -1,4 +1,7 @@
 project_id = "kfalicdqmusftthihvrp"
 
+[functions.create-user]
+verify_jwt = false
+
 [functions.weekly-backup]
 verify_jwt = false
