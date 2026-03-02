@@ -295,6 +295,7 @@ export default function Payments() {
                 <Input
                   type="date"
                   value={form.date}
+                  min={format(new Date(), "yyyy-MM-dd")}
                   onChange={(e) => setForm({ ...form, date: e.target.value })}
                 />
               </div>

@@ -86,10 +86,8 @@ export default function PendingSalaries() {
 
   const monthOptions = useMemo(() => {
     const now = new Date();
-    return Array.from({ length: 12 }, (_, i) => {
-      const d = subMonths(now, i);
-      return { value: format(d, "yyyy-MM"), label: format(d, "MMMM yyyy") };
-    });
+    // Only show current month
+    return [{ value: format(now, "yyyy-MM"), label: format(now, "MMMM yyyy") }];
   }, []);
 
   const activeTeachers = useMemo(
