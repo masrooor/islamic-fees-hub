@@ -178,7 +178,19 @@ export default function TeacherSalaries() {
     win.print();
   };
 
-  return (
+  const openEditDialog = (s: typeof salaries[0]) => {
+    setEditSalary({ id: s.id, otherDeduction: s.otherDeduction, notes: s.notes, baseSalary: s.baseSalary, loanDeduction: s.loanDeduction });
+    setEditOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    if (!editSalary) return;
+    const newNet = editSalary.baseSalary - editSalary.loanDeduction - editSalary.otherDeduction;
+    await updateSalary(editSalary.id, { otherDeduction: editSalary.otherDeduction, netPaid: newNet, notes: editSalary.notes });
+    toast.success("Salary record updated");
+    setEditOpen(false);
+    setEditSalary(null);
+  };
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
