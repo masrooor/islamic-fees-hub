@@ -370,7 +370,10 @@ export default function TeacherSalaries() {
                         )}
                       </TableCell>
                       <TableCell>{s.datePaid}</TableCell>
-                      <TableCell>
+                      <TableCell className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(s)} title="Edit">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => printSalarySlip(s.id)} title="Print Slip">
                           <Printer className="h-4 w-4" />
                         </Button>
@@ -383,6 +386,29 @@ export default function TeacherSalaries() {
           })()}
         </CardContent>
       </Card>
+
+      {/* Edit Salary Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Salary Record</DialogTitle></DialogHeader>
+          {editSalary && (
+            <div className="space-y-3">
+              <div>
+                <Label>Other Deduction</Label>
+                <Input type="number" value={editSalary.otherDeduction} onChange={(e) => setEditSalary({ ...editSalary, otherDeduction: Number(e.target.value) })} />
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <Input value={editSalary.notes} onChange={(e) => setEditSalary({ ...editSalary, notes: e.target.value })} />
+              </div>
+              <p className="text-sm font-semibold">
+                Updated Net Pay: <span className="text-primary">{formatPKR(editSalary.baseSalary - editSalary.loanDeduction - editSalary.otherDeduction)}</span>
+              </p>
+              <Button className="w-full" onClick={handleEditSave}>Save Changes</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
