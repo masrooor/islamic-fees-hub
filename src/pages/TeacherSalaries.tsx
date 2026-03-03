@@ -26,6 +26,8 @@ export default function TeacherSalaries() {
   const [filterTeacher, setFilterTeacher] = useState("all");
   const [filterMonth, setFilterMonth] = useState("all");
   const [filterMode, setFilterMode] = useState("all");
+  const [editOpen, setEditOpen] = useState(false);
+  const [editSalary, setEditSalary] = useState<{ id: string; otherDeduction: number; notes: string; baseSalary: number; loanDeduction: number } | null>(null);
   const [form, setForm] = useState({
     teacherId: "",
     month: format(new Date(), "yyyy-MM"),
