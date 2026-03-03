@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, AlertCircle, Upload, Printer } from "lucide-react";
+import { Plus, AlertCircle, Upload, Printer, Pencil } from "lucide-react";
 import ProofUpload from "@/components/ProofUpload";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function TeacherSalaries() {
   const { teachers } = useTeachers();
-  const { salaries, loading, addSalary } = useTeacherSalaries();
+  const { salaries, loading, addSalary, updateSalary } = useTeacherSalaries();
   const { loans, updateLoan } = useTeacherLoans();
   const { advances } = useTeacherAdvances();
   const [open, setOpen] = useState(false);
@@ -26,6 +26,8 @@ export default function TeacherSalaries() {
   const [filterTeacher, setFilterTeacher] = useState("all");
   const [filterMonth, setFilterMonth] = useState("all");
   const [filterMode, setFilterMode] = useState("all");
+  const [editOpen, setEditOpen] = useState(false);
+  const [editSalary, setEditSalary] = useState<{ id: string; otherDeduction: number; notes: string; baseSalary: number; loanDeduction: number } | null>(null);
   const [form, setForm] = useState({
     teacherId: "",
     month: format(new Date(), "yyyy-MM"),
@@ -174,6 +176,20 @@ export default function TeacherSalaries() {
     `);
     win.document.close();
     win.print();
+  };
+
+  const openEditDialog = (s: typeof salaries[0]) => {
+    setEditSalary({ id: s.id, otherDeduction: s.otherDeduction, notes: s.notes, baseSalary: s.baseSalary, loanDeduction: s.loanDeduction });
+    setEditOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    if (!editSalary) return;
+    const newNet = editSalary.baseSalary - editSalary.loanDeduction - editSalary.otherDeduction;
+    await updateSalary(editSalary.id, { otherDeduction: editSalary.otherDeduction, netPaid: newNet, notes: editSalary.notes });
+    toast.success("Salary record updated");
+    setEditOpen(false);
+    setEditSalary(null);
   };
 
   return (
@@ -354,7 +370,10 @@ export default function TeacherSalaries() {
                         )}
                       </TableCell>
                       <TableCell>{s.datePaid}</TableCell>
-                      <TableCell>
+                      <TableCell className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(s)} title="Edit">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => printSalarySlip(s.id)} title="Print Slip">
                           <Printer className="h-4 w-4" />
                         </Button>
@@ -367,6 +386,29 @@ export default function TeacherSalaries() {
           })()}
         </CardContent>
       </Card>
+
+      {/* Edit Salary Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Salary Record</DialogTitle></DialogHeader>
+          {editSalary && (
+            <div className="space-y-3">
+              <div>
+                <Label>Other Deduction</Label>
+                <Input type="number" value={editSalary.otherDeduction} onChange={(e) => setEditSalary({ ...editSalary, otherDeduction: Number(e.target.value) })} />
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <Input value={editSalary.notes} onChange={(e) => setEditSalary({ ...editSalary, notes: e.target.value })} />
+              </div>
+              <p className="text-sm font-semibold">
+                Updated Net Pay: <span className="text-primary">{formatPKR(editSalary.baseSalary - editSalary.loanDeduction - editSalary.otherDeduction)}</span>
+              </p>
+              <Button className="w-full" onClick={handleEditSave}>Save Changes</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
