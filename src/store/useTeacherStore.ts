@@ -136,7 +136,16 @@ export function useTeacherSalaries() {
     await fetchSalaries();
   }, [fetchSalaries]);
 
-  return { salaries, loading, addSalary };
+  const updateSalary = useCallback(async (id: string, updates: Partial<TeacherSalary>) => {
+    const mapped: Record<string, unknown> = {};
+    if (updates.otherDeduction !== undefined) mapped.other_deduction = updates.otherDeduction;
+    if (updates.netPaid !== undefined) mapped.net_paid = updates.netPaid;
+    if (updates.notes !== undefined) mapped.notes = updates.notes;
+    await supabase.from("teacher_salaries").update(mapped).eq("id", id);
+    await fetchSalaries();
+  }, [fetchSalaries]);
+
+  return { salaries, loading, addSalary, updateSalary };
 }
 
 export function useTeacherAttendance() {
