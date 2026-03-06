@@ -233,6 +233,50 @@ export type Database = {
           },
         ]
       }
+      teacher_bonuses: {
+        Row: {
+          amount: number
+          created_at: string
+          date_given: string
+          id: string
+          month: string
+          notes: string
+          payment_mode: string
+          proof_image_url: string
+          teacher_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          date_given?: string
+          id?: string
+          month: string
+          notes?: string
+          payment_mode?: string
+          proof_image_url?: string
+          teacher_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date_given?: string
+          id?: string
+          month?: string
+          notes?: string
+          payment_mode?: string
+          proof_image_url?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_bonuses_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teacher_loans: {
         Row: {
           amount: number
