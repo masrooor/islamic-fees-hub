@@ -80,6 +80,8 @@ export default function StudentDetail() {
     (f) => f.classGrade === student?.classGrade && f.feeType === "tuition"
   );
   const registrationFee = fees.find(
+    (f) => f.classGrade === student?.classGrade && f.feeType === "registration"
+  );
 
   // Calculate pending months count for this student
   const getThisStudentPendingMonths = () => {
