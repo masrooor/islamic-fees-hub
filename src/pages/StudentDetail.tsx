@@ -108,7 +108,8 @@ export default function StudentDetail() {
   const requireFullPayment = pendingMonthCount <= 1 && payForm.feeType === "tuition";
 
   const handleRecordPayment = async () => {
-    if (!id || !payForm.amountPaid || parseFloat(payForm.amountPaid) <= 0) return;
+    const amount = requireFullPayment && tuitionFee ? tuitionFee.amount : parseFloat(payForm.amountPaid);
+    if (!id || !amount || amount <= 0) return;
     await addPayment({
       studentId: id,
       feeType: payForm.feeType,
