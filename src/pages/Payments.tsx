@@ -29,7 +29,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Download, FileText, Search } from "lucide-react";
+import { Plus, Download, FileText, Search, ChevronsUpDown, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import ProofUpload from "@/components/ProofUpload";
 import { downloadCSV } from "@/lib/exportCsv";
 import { format } from "date-fns";
