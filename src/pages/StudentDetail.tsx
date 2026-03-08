@@ -113,7 +113,7 @@ export default function StudentDetail() {
     await addPayment({
       studentId: id,
       feeType: payForm.feeType,
-      amountPaid: parseFloat(payForm.amountPaid),
+      amountPaid: amount,
       date: format(new Date(), "yyyy-MM-dd"),
       feeMonth: payForm.feeMonth,
       notes: payForm.notes,
