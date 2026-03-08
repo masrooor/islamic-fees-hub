@@ -50,6 +50,7 @@ export default function Payments() {
   const [filterMonth, setFilterMonth] = useState("all");
   const [filterMode, setFilterMode] = useState("all");
   const [searchReceipt, setSearchReceipt] = useState("");
+  const [studentComboOpen, setStudentComboOpen] = useState(false);
 
   const currentMonth = format(new Date(), "yyyy-MM");
   const [form, setForm] = useState({
