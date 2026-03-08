@@ -206,7 +206,23 @@ export default function StudentDetail() {
                 </div>
                 <div>
                   <Label>Amount (PKR) *</Label>
-                  <Input type="number" min={0} value={payForm.amountPaid} onChange={(e) => setPayForm({ ...payForm, amountPaid: e.target.value })} placeholder="0" />
+                  <Input
+                    type="number"
+                    min={0}
+                    value={requireFullPayment && tuitionFee ? tuitionFee.amount : payForm.amountPaid}
+                    onChange={(e) => setPayForm({ ...payForm, amountPaid: e.target.value })}
+                    placeholder="0"
+                    readOnly={requireFullPayment}
+                    disabled={requireFullPayment}
+                    className={requireFullPayment ? "bg-muted" : ""}
+                  />
+                  {payForm.feeType === "tuition" && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {pendingMonthCount <= 1
+                        ? "Only 1 month pending — full payment required."
+                        : `${pendingMonthCount} months pending — partial payment allowed.`}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label>Payment Mode</Label>
