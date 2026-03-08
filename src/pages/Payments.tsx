@@ -328,7 +328,17 @@ export default function Payments() {
                       amountPaid: parseFloat(e.target.value) || 0,
                     })
                   }
+                  readOnly={requireFullPayment}
+                  disabled={requireFullPayment}
+                  className={requireFullPayment ? "bg-muted" : ""}
                 />
+                {form.studentId && form.feeType === "tuition" && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {selectedPendingMonths <= 1
+                      ? "Only 1 month pending — full payment required."
+                      : `${selectedPendingMonths} months pending — partial payment allowed.`}
+                  </p>
+                )}
               </div>
               <div>
                 <Label>Fee Month (auto-calculated)</Label>
