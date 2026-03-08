@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useStudents, usePayments, useFeeStructures } from "@/store/useStore";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,7 +29,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Download, FileText, Search } from "lucide-react";
+import { Plus, Download, FileText, Search, ChevronsUpDown, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import ProofUpload from "@/components/ProofUpload";
 import { downloadCSV } from "@/lib/exportCsv";
 import { format } from "date-fns";
@@ -47,6 +50,7 @@ export default function Payments() {
   const [filterMonth, setFilterMonth] = useState("all");
   const [filterMode, setFilterMode] = useState("all");
   const [searchReceipt, setSearchReceipt] = useState("");
+  const [studentComboOpen, setStudentComboOpen] = useState(false);
 
   const currentMonth = format(new Date(), "yyyy-MM");
   const [form, setForm] = useState({
@@ -283,23 +287,57 @@ export default function Payments() {
             <div className="space-y-4 pt-2">
               <div>
                 <Label>Student *</Label>
-                <Select
-                  value={form.studentId}
-                  onValueChange={handleStudentChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select student" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {students
-                      .filter((s) => s.status === "active")
-                      .map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.name} ({s.classGrade})
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={studentComboOpen} onOpenChange={setStudentComboOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={studentComboOpen}
+                      className="w-full justify-between font-normal"
+                    >
+                      {form.studentId
+                        ? (() => {
+                            const s = students.find((s) => s.id === form.studentId);
+                            return s ? `${s.name} (${s.classGrade})` : "Select student";
+                          })()
+                        : "Search student..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search by name, code, guardian..." />
+                      <CommandList>
+                        <CommandEmpty>No student found.</CommandEmpty>
+                        <CommandGroup>
+                          {students
+                            .filter((s) => s.status === "active")
+                            .map((s) => (
+                              <CommandItem
+                                key={s.id}
+                                value={`${s.name} ${s.studentCode} ${s.guardianName} ${s.classGrade}`}
+                                onSelect={() => {
+                                  handleStudentChange(s.id);
+                                  setStudentComboOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    form.studentId === s.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <div className="flex flex-col">
+                                  <span>{s.name} <span className="text-muted-foreground">({s.classGrade})</span></span>
+                                  <span className="text-xs text-muted-foreground">{s.studentCode} · {s.guardianName}</span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div>
                 <Label>Fee Type *</Label>
