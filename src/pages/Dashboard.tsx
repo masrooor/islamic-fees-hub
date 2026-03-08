@@ -62,8 +62,13 @@ export default function Dashboard() {
 
   const getStudentName = (id: string) => students.find((s) => s.id === id)?.name ?? "Unknown";
 
+  const paidStudentsCount = studentsPaidThisMonth.size;
+  const totalActiveStudents = activeStudents.length;
+  const paidPercentage = totalActiveStudents > 0 ? (paidStudentsCount / totalActiveStudents) * 100 : 0;
+
   const studentCards = [
     { title: "Total Students", value: activeStudents.length, icon: Users, color: "text-primary" },
+    { title: "Students Paid (This Month)", value: `${paidStudentsCount} of ${totalActiveStudents}`, icon: CreditCard, color: "text-primary", hasProgress: true, percentage: paidPercentage },
     { title: "Pending Fees", value: `${pendingStudents.length} student${pendingStudents.length !== 1 ? "s" : ""}`, icon: AlertCircle, color: "text-destructive" },
     { title: "Today's Collection", value: formatPKR(todayCollection), icon: TrendingUp, color: "text-primary" },
     { title: "This Month", value: formatPKR(monthlyCollection), icon: CreditCard, color: "text-primary" },
@@ -87,14 +92,22 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {studentCards.map((card) => (
           <Card key={card.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
               <card.icon className={`h-4 w-4 ${card.color}`} />
             </CardHeader>
-            <CardContent><div className="text-2xl font-bold">{card.value}</div></CardContent>
+            <CardContent>
+              <div className="text-2xl font-bold">{card.value}</div>
+              {(card as any).hasProgress && (
+                <div className="mt-2">
+                  <Progress value={(card as any).percentage} className="h-2" />
+                  <p className="text-xs text-muted-foreground mt-1">{Math.round((card as any).percentage)}% paid</p>
+                </div>
+              )}
+            </CardContent>
           </Card>
         ))}
       </div>
