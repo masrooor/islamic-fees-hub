@@ -123,8 +123,6 @@ export default function StudentDetail() {
     resetPayForm();
     setPayDialogOpen(false);
   };
-    (f) => f.classGrade === student?.classGrade && f.feeType === "registration"
-  );
 
   // Calculate pending months — from enrollment to now
   const pendingMonths: { month: string; due: number; paid: number; balance: number }[] = [];
