@@ -120,7 +120,7 @@ export default function StudentDetail() {
       collectedBy: user?.id ?? null,
       paymentMode: payForm.paymentMode,
     });
-    toast({ title: "Payment recorded", description: `${formatPKR(parseFloat(payForm.amountPaid))} received.` });
+    toast({ title: "Payment recorded", description: `${formatPKR(amount)} received.` });
     resetPayForm();
     setPayDialogOpen(false);
   };
