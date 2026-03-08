@@ -63,23 +63,6 @@ export default function StudentDetail() {
       notes: "",
     });
 
-  const handleRecordPayment = async () => {
-    if (!id || !payForm.amountPaid || parseFloat(payForm.amountPaid) <= 0) return;
-    await addPayment({
-      studentId: id,
-      feeType: payForm.feeType,
-      amountPaid: parseFloat(payForm.amountPaid),
-      date: format(new Date(), "yyyy-MM-dd"),
-      feeMonth: payForm.feeMonth,
-      notes: payForm.notes,
-      collectedBy: user?.id ?? null,
-      paymentMode: payForm.paymentMode,
-    });
-    toast({ title: "Payment recorded", description: `${formatPKR(parseFloat(payForm.amountPaid))} received.` });
-    resetPayForm();
-    setPayDialogOpen(false);
-  };
-
   const student = students.find((s) => s.id === id);
   const studentPayments = payments
     .filter((p) => p.studentId === id)
@@ -99,6 +82,48 @@ export default function StudentDetail() {
   const registrationFee = fees.find(
     (f) => f.classGrade === student?.classGrade && f.feeType === "registration"
   );
+
+  // Calculate pending months count for this student
+  const getThisStudentPendingMonths = () => {
+    if (!student || !tuitionFee) return 0;
+    const enrollDate = parseISO(student.enrollmentDate);
+    const now = new Date();
+    const months = eachMonthOfInterval({
+      start: startOfMonth(enrollDate),
+      end: startOfMonth(now),
+    });
+    let unpaidCount = 0;
+    const studentPays = payments.filter((p) => p.studentId === id && p.feeType === "tuition");
+    for (const m of months) {
+      const monthKey = format(m, "yyyy-MM");
+      const paidForMonth = studentPays
+        .filter((p) => p.feeMonth === monthKey)
+        .reduce((sum, p) => sum + p.amountPaid, 0);
+      if (paidForMonth < tuitionFee.amount) unpaidCount++;
+    }
+    return unpaidCount;
+  };
+
+  const pendingMonthCount = getThisStudentPendingMonths();
+  const requireFullPayment = pendingMonthCount <= 1 && payForm.feeType === "tuition";
+
+  const handleRecordPayment = async () => {
+    const amount = requireFullPayment && tuitionFee ? tuitionFee.amount : parseFloat(payForm.amountPaid);
+    if (!id || !amount || amount <= 0) return;
+    await addPayment({
+      studentId: id,
+      feeType: payForm.feeType,
+      amountPaid: amount,
+      date: format(new Date(), "yyyy-MM-dd"),
+      feeMonth: payForm.feeMonth,
+      notes: payForm.notes,
+      collectedBy: user?.id ?? null,
+      paymentMode: payForm.paymentMode,
+    });
+    toast({ title: "Payment recorded", description: `${formatPKR(amount)} received.` });
+    resetPayForm();
+    setPayDialogOpen(false);
+  };
 
   // Calculate pending months — from enrollment to now
   const pendingMonths: { month: string; due: number; paid: number; balance: number }[] = [];
@@ -182,7 +207,23 @@ export default function StudentDetail() {
                 </div>
                 <div>
                   <Label>Amount (PKR) *</Label>
-                  <Input type="number" min={0} value={payForm.amountPaid} onChange={(e) => setPayForm({ ...payForm, amountPaid: e.target.value })} placeholder="0" />
+                  <Input
+                    type="number"
+                    min={0}
+                    value={requireFullPayment && tuitionFee ? tuitionFee.amount : payForm.amountPaid}
+                    onChange={(e) => setPayForm({ ...payForm, amountPaid: e.target.value })}
+                    placeholder="0"
+                    readOnly={requireFullPayment}
+                    disabled={requireFullPayment}
+                    className={requireFullPayment ? "bg-muted" : ""}
+                  />
+                  {payForm.feeType === "tuition" && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {pendingMonthCount <= 1
+                        ? "Only 1 month pending — full payment required."
+                        : `${pendingMonthCount} months pending — partial payment allowed.`}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label>Payment Mode</Label>

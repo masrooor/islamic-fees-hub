@@ -74,14 +74,64 @@ export default function Payments() {
     return format(nextDate, "yyyy-MM");
   };
 
+  // Calculate pending months for the selected student
+  const getStudentPendingMonths = (studentId: string) => {
+    const student = students.find((s) => s.id === studentId);
+    if (!student) return 0;
+    const tuitionFee = fees.find(
+      (f) => f.classGrade === student.classGrade && f.feeType === "tuition"
+    );
+    if (!tuitionFee) return 0;
+    const enrollDate = new Date(student.enrollmentDate);
+    const now = new Date();
+    const months: string[] = [];
+    const d = new Date(enrollDate.getFullYear(), enrollDate.getMonth(), 1);
+    while (d <= now) {
+      months.push(format(d, "yyyy-MM"));
+      d.setMonth(d.getMonth() + 1);
+    }
+    let unpaidCount = 0;
+    for (const m of months) {
+      const paidForMonth = payments
+        .filter((p) => p.studentId === studentId && p.feeMonth === m && p.feeType === "tuition")
+        .reduce((sum, p) => sum + p.amountPaid, 0);
+      if (paidForMonth < tuitionFee.amount) unpaidCount++;
+    }
+    return unpaidCount;
+  };
+
+  const getStudentMonthlyFee = (studentId: string) => {
+    const student = students.find((s) => s.id === studentId);
+    if (!student) return 0;
+    const tuitionFee = fees.find(
+      (f) => f.classGrade === student.classGrade && f.feeType === "tuition"
+    );
+    return tuitionFee?.amount ?? 0;
+  };
+
+  const selectedPendingMonths = form.studentId ? getStudentPendingMonths(form.studentId) : 0;
+  const selectedMonthlyFee = form.studentId ? getStudentMonthlyFee(form.studentId) : 0;
+  const requireFullPayment = selectedPendingMonths <= 1 && form.feeType === "tuition";
+
   const handleStudentChange = (studentId: string) => {
     const nextMonth = getNextFeeMonth(studentId, form.feeType);
-    setForm({ ...form, studentId, feeMonth: nextMonth });
+    const pendingMonths = getStudentPendingMonths(studentId);
+    const monthlyFee = getStudentMonthlyFee(studentId);
+    const mustPayFull = pendingMonths <= 1;
+    setForm({
+      ...form,
+      studentId,
+      feeMonth: nextMonth,
+      amountPaid: mustPayFull && form.feeType === "tuition" ? monthlyFee : 0,
+    });
   };
 
   const handleFeeTypeChange = (feeType: "tuition" | "registration") => {
     const nextMonth = form.studentId ? getNextFeeMonth(form.studentId, feeType) : currentMonth;
-    setForm({ ...form, feeType, feeMonth: nextMonth });
+    const pendingMonths = form.studentId ? getStudentPendingMonths(form.studentId) : 0;
+    const monthlyFee = form.studentId ? getStudentMonthlyFee(form.studentId) : 0;
+    const mustPayFull = pendingMonths <= 1 && feeType === "tuition";
+    setForm({ ...form, feeType, feeMonth: nextMonth, amountPaid: mustPayFull ? monthlyFee : form.amountPaid });
   };
 
   const handleSubmit = () => {
@@ -278,7 +328,17 @@ export default function Payments() {
                       amountPaid: parseFloat(e.target.value) || 0,
                     })
                   }
+                  readOnly={requireFullPayment}
+                  disabled={requireFullPayment}
+                  className={requireFullPayment ? "bg-muted" : ""}
                 />
+                {form.studentId && form.feeType === "tuition" && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {selectedPendingMonths <= 1
+                      ? "Only 1 month pending — full payment required."
+                      : `${selectedPendingMonths} months pending — partial payment allowed.`}
+                  </p>
+                )}
               </div>
               <div>
                 <Label>Fee Month (auto-calculated)</Label>
