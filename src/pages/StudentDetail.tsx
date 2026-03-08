@@ -63,6 +63,24 @@ export default function StudentDetail() {
       notes: "",
     });
 
+  const student = students.find((s) => s.id === id);
+  const studentPayments = payments
+    .filter((p) => p.studentId === id)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const filteredPayments = studentPayments.filter((p) => {
+    if (filterFeeType !== "all" && p.feeType !== filterFeeType) return false;
+    if (filterMonth !== "all" && p.feeMonth !== filterMonth) return false;
+    return true;
+  });
+
+  const paymentMonths = [...new Set(studentPayments.map((p) => p.feeMonth).filter(Boolean))].sort().reverse();
+
+  const tuitionFee = fees.find(
+    (f) => f.classGrade === student?.classGrade && f.feeType === "tuition"
+  );
+  const registrationFee = fees.find(
+
   // Calculate pending months count for this student
   const getThisStudentPendingMonths = () => {
     if (!student || !tuitionFee) return 0;
@@ -84,6 +102,9 @@ export default function StudentDetail() {
     return unpaidCount;
   };
 
+  const pendingMonthCount = getThisStudentPendingMonths();
+  const requireFullPayment = pendingMonthCount <= 1 && payForm.feeType === "tuition";
+
   const handleRecordPayment = async () => {
     if (!id || !payForm.amountPaid || parseFloat(payForm.amountPaid) <= 0) return;
     await addPayment({
@@ -100,24 +121,6 @@ export default function StudentDetail() {
     resetPayForm();
     setPayDialogOpen(false);
   };
-
-  const student = students.find((s) => s.id === id);
-  const studentPayments = payments
-    .filter((p) => p.studentId === id)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-  const filteredPayments = studentPayments.filter((p) => {
-    if (filterFeeType !== "all" && p.feeType !== filterFeeType) return false;
-    if (filterMonth !== "all" && p.feeMonth !== filterMonth) return false;
-    return true;
-  });
-
-  const paymentMonths = [...new Set(studentPayments.map((p) => p.feeMonth).filter(Boolean))].sort().reverse();
-
-  const tuitionFee = fees.find(
-    (f) => f.classGrade === student?.classGrade && f.feeType === "tuition"
-  );
-  const registrationFee = fees.find(
     (f) => f.classGrade === student?.classGrade && f.feeType === "registration"
   );
 
