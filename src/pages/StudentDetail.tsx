@@ -63,6 +63,27 @@ export default function StudentDetail() {
       notes: "",
     });
 
+  // Calculate pending months count for this student
+  const getThisStudentPendingMonths = () => {
+    if (!student || !tuitionFee) return 0;
+    const enrollDate = parseISO(student.enrollmentDate);
+    const now = new Date();
+    const months = eachMonthOfInterval({
+      start: startOfMonth(enrollDate),
+      end: startOfMonth(now),
+    });
+    let unpaidCount = 0;
+    const studentPays = payments.filter((p) => p.studentId === id && p.feeType === "tuition");
+    for (const m of months) {
+      const monthKey = format(m, "yyyy-MM");
+      const paidForMonth = studentPays
+        .filter((p) => p.feeMonth === monthKey)
+        .reduce((sum, p) => sum + p.amountPaid, 0);
+      if (paidForMonth < tuitionFee.amount) unpaidCount++;
+    }
+    return unpaidCount;
+  };
+
   const handleRecordPayment = async () => {
     if (!id || !payForm.amountPaid || parseFloat(payForm.amountPaid) <= 0) return;
     await addPayment({
