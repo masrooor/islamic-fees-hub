@@ -287,23 +287,57 @@ export default function Payments() {
             <div className="space-y-4 pt-2">
               <div>
                 <Label>Student *</Label>
-                <Select
-                  value={form.studentId}
-                  onValueChange={handleStudentChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select student" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {students
-                      .filter((s) => s.status === "active")
-                      .map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.name} ({s.classGrade})
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={studentComboOpen} onOpenChange={setStudentComboOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={studentComboOpen}
+                      className="w-full justify-between font-normal"
+                    >
+                      {form.studentId
+                        ? (() => {
+                            const s = students.find((s) => s.id === form.studentId);
+                            return s ? `${s.name} (${s.classGrade})` : "Select student";
+                          })()
+                        : "Search student..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search by name, code, guardian..." />
+                      <CommandList>
+                        <CommandEmpty>No student found.</CommandEmpty>
+                        <CommandGroup>
+                          {students
+                            .filter((s) => s.status === "active")
+                            .map((s) => (
+                              <CommandItem
+                                key={s.id}
+                                value={`${s.name} ${s.studentCode} ${s.guardianName} ${s.classGrade}`}
+                                onSelect={() => {
+                                  handleStudentChange(s.id);
+                                  setStudentComboOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    form.studentId === s.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <div className="flex flex-col">
+                                  <span>{s.name} <span className="text-muted-foreground">({s.classGrade})</span></span>
+                                  <span className="text-xs text-muted-foreground">{s.studentCode} · {s.guardianName}</span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div>
                 <Label>Fee Type *</Label>
