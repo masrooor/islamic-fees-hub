@@ -149,7 +149,25 @@ export default function Students() {
           >
             <Download className="h-4 w-4 mr-1" /> Export CSV
           </Button>
-          <StudentCsvImport onImport={bulkAddStudents} />
+          <StudentCsvImport onImport={async (csvStudents) => {
+            // Upsert fee structures for each unique class
+            const classFeesMap = new Map<string, number>();
+            csvStudents.forEach((s) => {
+              // Use the last fee value for each class (or could validate they're consistent)
+              classFeesMap.set(s.classGrade, s.fees);
+            });
+            for (const [classGrade, amount] of classFeesMap) {
+              const existing = fees.find((f) => f.classGrade === classGrade && f.feeType === "tuition");
+              if (existing) {
+                await updateFee(existing.id, { amount });
+              } else {
+                await addFee({ classGrade, feeType: "tuition", amount });
+              }
+            }
+            // Import students (without fees field)
+            const studentsToImport = csvStudents.map(({ fees: _fees, ...rest }) => rest);
+            return bulkAddStudents(studentsToImport);
+          }} />
         <Dialog
           open={dialogOpen}
           onOpenChange={(open) => {
