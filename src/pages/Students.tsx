@@ -59,7 +59,7 @@ const emptyForm: StudentForm = {
 
 export default function Students() {
   const { students, addStudent, bulkAddStudents, updateStudent, deleteStudent } = useStudents();
-  const { fees, addFee } = useFeeStructures();
+  const { fees, addFee, updateFee } = useFeeStructures();
   const { classNames } = useClasses();
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("all");
