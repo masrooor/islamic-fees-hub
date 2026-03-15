@@ -16,17 +16,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Upload, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Upload, AlertCircle, CheckCircle2, Download } from "lucide-react";
 import { format } from "date-fns";
+import { formatPKR } from "@/lib/currency";
 
-interface CsvStudent {
+export interface CsvStudent {
   name: string;
   guardianName: string;
   contact: string;
   classGrade: string;
   enrollmentDate: string;
   status: "active" | "inactive";
-  studentCode?: string;
+  fees: number;
 }
 
 interface Props {
@@ -63,6 +64,19 @@ function parseCsvLine(line: string): string[] {
   return result;
 }
 
+function downloadTemplate() {
+  const headers = ["Name", "Class/Grade", "Fees", "Guardian Name", "Contact", "Enrollment Date", "Status"];
+  const sample = ["Ahmed Khan", "Grade 1", "5000", "Khalid Khan", "03001234567", "2025-01-15", "active"];
+  const csv = [headers.join(","), sample.join(",")].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "student_import_template.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function StudentCsvImport({ onImport }: Props) {
   const { classNames } = useClasses();
   const [open, setOpen] = useState(false);
@@ -76,6 +90,7 @@ export default function StudentCsvImport({ onImport }: Props) {
     setParsed([]);
     setErrors([]);
     setDone(false);
+    if (fileRef.current) fileRef.current.value = "";
   };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,13 +107,13 @@ export default function StudentCsvImport({ onImport }: Props) {
       }
 
       const header = parseCsvLine(lines[0]).map((h) => h.toLowerCase().replace(/[^a-z0-9]/g, ""));
-      const nameIdx = header.findIndex((h) => h.includes("name") && !h.includes("guardian"));
+      const nameIdx = header.findIndex((h) => h.includes("name") && !h.includes("guardian") && !h.includes("father") && !h.includes("parent"));
       const guardianIdx = header.findIndex((h) => h.includes("guardian") || h.includes("father") || h.includes("parent"));
       const contactIdx = header.findIndex((h) => h.includes("contact") || h.includes("phone") || h.includes("mobile"));
       const classIdx = header.findIndex((h) => h.includes("class") || h.includes("grade"));
       const dateIdx = header.findIndex((h) => h.includes("enrollment") || h.includes("date") || h.includes("admission"));
       const statusIdx = header.findIndex((h) => h.includes("status"));
-      const codeIdx = header.findIndex((h) => h.includes("code") || h.includes("id") || h.includes("roll"));
+      const feesIdx = header.findIndex((h) => h.includes("fee") || h.includes("tuition") || h.includes("amount"));
 
       if (nameIdx === -1) {
         setErrors(["Could not find a 'Name' column in the CSV header."]);
@@ -106,6 +121,10 @@ export default function StudentCsvImport({ onImport }: Props) {
       }
       if (classIdx === -1) {
         setErrors(["Could not find a 'Class/Grade' column in the CSV header."]);
+        return;
+      }
+      if (feesIdx === -1) {
+        setErrors(["Could not find a 'Fees' column in the CSV header. Fees is mandatory."]);
         return;
       }
 
@@ -116,6 +135,7 @@ export default function StudentCsvImport({ onImport }: Props) {
         const cols = parseCsvLine(lines[i]);
         const name = cols[nameIdx]?.trim() || "";
         const classGrade = cols[classIdx]?.trim() || "";
+        const feesRaw = cols[feesIdx]?.trim() || "";
 
         if (!name) {
           rowErrors.push(`Row ${i + 1}: Missing name, skipped.`);
@@ -126,7 +146,12 @@ export default function StudentCsvImport({ onImport }: Props) {
           continue;
         }
 
-        // Validate class grade - try to match
+        const fees = Number(feesRaw);
+        if (!feesRaw || isNaN(fees) || fees < 0) {
+          rowErrors.push(`Row ${i + 1}: Invalid or missing fees "${feesRaw}", skipped.`);
+          continue;
+        }
+
         const matchedGrade = classNames.find(
           (g) => g.toLowerCase() === classGrade.toLowerCase() || g.toLowerCase().replace(/\s/g, "") === classGrade.toLowerCase().replace(/\s/g, "")
         );
@@ -138,15 +163,13 @@ export default function StudentCsvImport({ onImport }: Props) {
         let enrollmentDate = format(new Date(), "yyyy-MM-dd");
         if (dateIdx !== -1 && cols[dateIdx]?.trim()) {
           const d = cols[dateIdx].trim();
-          // Try parsing common date formats
-          const parsed = new Date(d);
-          if (!isNaN(parsed.getTime())) {
-            enrollmentDate = format(parsed, "yyyy-MM-dd");
+          const parsedDate = new Date(d);
+          if (!isNaN(parsedDate.getTime())) {
+            enrollmentDate = format(parsedDate, "yyyy-MM-dd");
           }
         }
 
         const status = statusIdx !== -1 && cols[statusIdx]?.trim().toLowerCase() === "inactive" ? "inactive" : "active";
-        const studentCode = codeIdx !== -1 ? cols[codeIdx]?.trim() || "" : "";
 
         students.push({
           name,
@@ -155,7 +178,7 @@ export default function StudentCsvImport({ onImport }: Props) {
           classGrade: matchedGrade,
           enrollmentDate,
           status,
-          ...(studentCode ? { studentCode } : {}),
+          fees,
         });
       }
 
@@ -189,9 +212,16 @@ export default function StudentCsvImport({ onImport }: Props) {
           <DialogTitle>Import Students from CSV</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
-          <p className="text-sm text-muted-foreground">
-            Upload a CSV file with columns: <strong>Name</strong> (required), <strong>Class/Grade</strong> (required), Guardian Name, Contact, Enrollment Date, Status, Student Code.
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Required: <strong>Name</strong>, <strong>Class/Grade</strong>, <strong>Fees</strong>.
+              Optional: Guardian Name, Contact, Enrollment Date, Status.
+              Student code is auto-generated.
+            </p>
+            <Button size="sm" variant="ghost" onClick={downloadTemplate}>
+              <Download className="h-4 w-4 mr-1" /> Template
+            </Button>
+          </div>
           <input
             ref={fileRef}
             type="file"
@@ -213,7 +243,7 @@ export default function StudentCsvImport({ onImport }: Props) {
           {done && (
             <div className="bg-accent/50 border border-accent rounded p-3 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-primary" />
-              <p className="text-sm text-foreground">Students imported successfully!</p>
+              <p className="text-sm text-foreground">Students imported successfully! Fee structures updated.</p>
             </div>
           )}
 
@@ -224,21 +254,21 @@ export default function StudentCsvImport({ onImport }: Props) {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Code</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Guardian</TableHead>
                       <TableHead>Class</TableHead>
+                      <TableHead>Fees</TableHead>
                       <TableHead>Contact</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {parsed.map((s, i) => (
                       <TableRow key={i}>
-                        <TableCell className="text-xs text-muted-foreground">{s.studentCode || "Auto"}</TableCell>
                         <TableCell>{s.name}</TableCell>
-                        <TableCell>{s.guardianName}</TableCell>
+                        <TableCell>{s.guardianName || "-"}</TableCell>
                         <TableCell>{s.classGrade}</TableCell>
-                        <TableCell>{s.contact}</TableCell>
+                        <TableCell>{formatPKR(s.fees)}</TableCell>
+                        <TableCell>{s.contact || "-"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
