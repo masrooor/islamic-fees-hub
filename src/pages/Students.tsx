@@ -142,8 +142,11 @@ export default function Students() {
             size="sm"
             variant="outline"
             onClick={() => {
-              const headers = ["Code", "Name", "Guardian", "Class", "Contact", "Enrollment Date", "Status"];
-              const rows = filtered.map((s) => [s.studentCode, s.name, s.guardianName, s.classGrade, s.contact, s.enrollmentDate, s.status]);
+              const headers = ["Code", "Name", "Guardian", "Class", "Fees", "Contact", "Enrollment Date", "Status"];
+              const rows = filtered.map((s) => {
+                const tuition = fees.find((f) => f.classGrade === s.classGrade && f.feeType === "tuition");
+                return [s.studentCode, s.name, s.guardianName, s.classGrade, tuition ? tuition.amount : 0, s.contact, s.enrollmentDate, s.status];
+              });
               downloadCSV("students.csv", headers, rows);
             }}
           >
