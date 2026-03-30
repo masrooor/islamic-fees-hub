@@ -94,9 +94,11 @@ export default function StudentCsvImport({ onImport }: Props) {
   };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    reset();
     const file = e.target.files?.[0];
     if (!file) return;
+    setParsed([]);
+    setErrors([]);
+    setDone(false);
     const reader = new FileReader();
     reader.onload = (ev) => {
       const text = ev.target?.result as string;
