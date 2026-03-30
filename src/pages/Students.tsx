@@ -145,7 +145,7 @@ export default function Students() {
               const headers = ["Code", "Name", "Guardian", "Class", "Fees", "Contact", "Enrollment Date", "Status"];
               const rows = filtered.map((s) => {
                 const tuition = fees.find((f) => f.classGrade === s.classGrade && f.feeType === "tuition");
-                return [s.studentCode, s.name, s.guardianName, s.classGrade, tuition ? tuition.amount : 0, s.contact, s.enrollmentDate, s.status];
+                return [s.studentCode, s.name, s.guardianName, s.classGrade, String(tuition ? tuition.amount : 0), s.contact, s.enrollmentDate, s.status];
               });
               downloadCSV("students.csv", headers, rows);
             }}
