@@ -153,9 +153,25 @@ export default function Students() {
             <Download className="h-4 w-4 mr-1" /> Export CSV
           </Button>
           <StudentCsvImport onImport={async (csvStudents) => {
-            // Upsert fee structures for each unique class
+            const existingCodes = new Set(
+              students
+                .map((s) => s.studentCode.trim().toLowerCase())
+                .filter(Boolean)
+            );
+            const seenCodes = new Set<string>();
+            const newCsvStudents = csvStudents.filter((s) => {
+              const code = (s.studentCode ?? "").trim().toLowerCase();
+              if (!code) return true;
+              if (existingCodes.has(code) || seenCodes.has(code)) return false;
+              seenCodes.add(code);
+              return true;
+            });
+
+            if (newCsvStudents.length === 0) return null;
+
+            // Upsert fee structures for each unique class in newly added rows only
             const classFeesMap = new Map<string, number>();
-            csvStudents.forEach((s) => {
+            newCsvStudents.forEach((s) => {
               // Use the last fee value for each class (or could validate they're consistent)
               classFeesMap.set(s.classGrade, s.fees);
             });
@@ -168,7 +184,7 @@ export default function Students() {
               }
             }
             // Import students (without fees field)
-            const studentsToImport = csvStudents.map(({ fees: _fees, ...rest }) => rest);
+            const studentsToImport = newCsvStudents.map(({ fees: _fees, ...rest }) => rest);
             return bulkAddStudents(studentsToImport);
           }} />
         <Dialog
