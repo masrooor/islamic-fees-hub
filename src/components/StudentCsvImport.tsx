@@ -21,6 +21,7 @@ import { format } from "date-fns";
 import { formatPKR } from "@/lib/currency";
 
 export interface CsvStudent {
+  studentCode?: string;
   name: string;
   guardianName: string;
   contact: string;
@@ -109,6 +110,7 @@ export default function StudentCsvImport({ onImport }: Props) {
       }
 
       const header = parseCsvLine(lines[0]).map((h) => h.toLowerCase().replace(/[^a-z0-9]/g, ""));
+      const codeIdx = header.findIndex((h) => h === "code" || h.includes("studentcode") || h.includes("studentid"));
       const nameIdx = header.findIndex((h) => h.includes("name") && !h.includes("guardian") && !h.includes("father") && !h.includes("parent"));
       const guardianIdx = header.findIndex((h) => h.includes("guardian") || h.includes("father") || h.includes("parent"));
       const contactIdx = header.findIndex((h) => h.includes("contact") || h.includes("phone") || h.includes("mobile"));
@@ -135,6 +137,7 @@ export default function StudentCsvImport({ onImport }: Props) {
 
       for (let i = 1; i < lines.length; i++) {
         const cols = parseCsvLine(lines[i]);
+        const studentCode = codeIdx !== -1 ? cols[codeIdx]?.trim() || "" : "";
         const name = cols[nameIdx]?.trim() || "";
         const classGrade = cols[classIdx]?.trim() || "";
         const feesRaw = cols[feesIdx]?.trim() || "";
@@ -174,6 +177,7 @@ export default function StudentCsvImport({ onImport }: Props) {
         const status = statusIdx !== -1 && cols[statusIdx]?.trim().toLowerCase() === "inactive" ? "inactive" : "active";
 
         students.push({
+          studentCode,
           name,
           guardianName: guardianIdx !== -1 ? cols[guardianIdx]?.trim() || "" : "",
           contact: contactIdx !== -1 ? cols[contactIdx]?.trim() || "" : "",
@@ -218,7 +222,7 @@ export default function StudentCsvImport({ onImport }: Props) {
             <p className="text-sm text-muted-foreground">
               Required: <strong>Name</strong>, <strong>Class/Grade</strong>, <strong>Fees</strong>.
               Optional: Guardian Name, Contact, Enrollment Date, Status.
-              Student code is auto-generated.
+              Student code is optional (existing codes are skipped, blank codes are auto-generated).
             </p>
             <Button size="sm" variant="ghost" onClick={downloadTemplate}>
               <Download className="h-4 w-4 mr-1" /> Template
@@ -256,6 +260,7 @@ export default function StudentCsvImport({ onImport }: Props) {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Code</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Guardian</TableHead>
                       <TableHead>Class</TableHead>
@@ -266,6 +271,7 @@ export default function StudentCsvImport({ onImport }: Props) {
                   <TableBody>
                     {parsed.map((s, i) => (
                       <TableRow key={i}>
+                        <TableCell>{s.studentCode || "(auto)"}</TableCell>
                         <TableCell>{s.name}</TableCell>
                         <TableCell>{s.guardianName || "-"}</TableCell>
                         <TableCell>{s.classGrade}</TableCell>
