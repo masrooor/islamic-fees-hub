@@ -34,9 +34,15 @@ export default function RoleManagement() {
 
   const fetchRoles = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("user_roles").select("*");
-    if (data) {
-      setRoles(data.map((r: any) => ({ id: r.id, userId: r.user_id, role: r.role })));
+    const [rolesRes, usersRes] = await Promise.all([
+      supabase.from("user_roles").select("*"),
+      supabase.functions.invoke("list-users"),
+    ]);
+    const emailMap: Record<string, string> = usersRes.data?.emailMap ?? {};
+    if (rolesRes.data) {
+      setRoles(rolesRes.data.map((r: any) => ({
+        id: r.id, userId: r.user_id, role: r.role, email: emailMap[r.user_id] || "",
+      })));
     }
     setLoading(false);
   }, []);
