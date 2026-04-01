@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function TeacherSalaries() {
   const { teachers } = useTeachers();
-  const { salaries, loading, addSalary, updateSalary } = useTeacherSalaries();
+  const { salaries, loading, addSalary, updateSalary, deleteSalary } = useTeacherSalaries();
   const { loans, updateLoan } = useTeacherLoans();
   const { advances } = useTeacherAdvances();
   const [open, setOpen] = useState(false);
