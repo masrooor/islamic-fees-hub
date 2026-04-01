@@ -227,7 +227,7 @@ export default function TeacherSalaries() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Month</Label><Input type="month" value={form.month} min={format(new Date(), "yyyy-MM")} max={format(new Date(), "yyyy-MM")} onChange={(e) => setForm({ ...form, month: e.target.value })} /></div>
+              <div><Label>Month</Label><Input type="month" value={form.month} min={format(new Date(), "yyyy-MM")} max={format(new Date(), "yyyy-MM")} onChange={(e) => setForm({ ...form, month: e.target.value, teacherId: "" })} /></div>
               
 
               {/* Payment Mode */}
