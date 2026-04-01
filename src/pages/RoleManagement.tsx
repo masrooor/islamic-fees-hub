@@ -96,6 +96,7 @@ export default function RoleManagement() {
       } else {
         toast.success("Email updated successfully");
         setEditOpen(false);
+        await fetchRoles();
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to update email");
