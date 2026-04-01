@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Pencil } from "lucide-react";
 
 interface UserRole {
   id: string;
@@ -24,6 +25,12 @@ export default function RoleManagement() {
   const [newPassword, setNewPassword] = useState("");
   const [newRole, setNewRole] = useState("user");
   const [creating, setCreating] = useState(false);
+
+  // Edit email state
+  const [editOpen, setEditOpen] = useState(false);
+  const [editUserId, setEditUserId] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editingEmail, setEditingEmail] = useState(false);
 
   const fetchRoles = useCallback(async () => {
     setLoading(true);
@@ -47,7 +54,6 @@ export default function RoleManagement() {
     if (!newEmail || !newPassword) return;
     setCreating(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
       const res = await supabase.functions.invoke("create-user", {
         body: { email: newEmail, password: newPassword, role: newRole },
       });
@@ -64,6 +70,31 @@ export default function RoleManagement() {
       toast.error(err.message || "Failed to create user");
     }
     setCreating(false);
+  };
+
+  const openEditEmail = (userId: string) => {
+    setEditUserId(userId);
+    setEditEmail("");
+    setEditOpen(true);
+  };
+
+  const handleEditEmail = async () => {
+    if (!editEmail) { toast.error("Enter a new email"); return; }
+    setEditingEmail(true);
+    try {
+      const res = await supabase.functions.invoke("update-user-email", {
+        body: { userId: editUserId, newEmail: editEmail },
+      });
+      if (res.error || res.data?.error) {
+        toast.error(res.data?.error || res.error?.message || "Failed to update email");
+      } else {
+        toast.success("Email updated successfully");
+        setEditOpen(false);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update email");
+    }
+    setEditingEmail(false);
   };
 
   const roleBadgeVariant = (role: string) => {
@@ -115,13 +146,18 @@ export default function RoleManagement() {
           {loading ? <p className="text-sm text-muted-foreground text-center py-8">Loading...</p> : roles.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No roles found.</p> : (
             <Table>
               <TableHeader><TableRow>
-                <TableHead>User ID</TableHead><TableHead>Current Role</TableHead><TableHead className="text-right">Change Role</TableHead>
+                <TableHead>User ID</TableHead><TableHead>Current Role</TableHead><TableHead>Edit Email</TableHead><TableHead className="text-right">Change Role</TableHead>
               </TableRow></TableHeader>
               <TableBody>
                 {roles.map((r) => (
                   <TableRow key={r.id}>
                     <TableCell className="font-mono text-xs">{r.userId.slice(0, 8)}...</TableCell>
                     <TableCell><Badge variant={roleBadgeVariant(r.role)}>{r.role}</Badge></TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="sm" onClick={() => openEditEmail(r.userId)} title="Edit Email">
+                        <Pencil className="h-4 w-4 mr-1" /> Edit Email
+                      </Button>
+                    </TableCell>
                     <TableCell className="text-right">
                       <Select value={r.role} onValueChange={(v) => handleUpdateRole(r.userId, v)}>
                         <SelectTrigger className="w-32 ml-auto"><SelectValue /></SelectTrigger>
@@ -139,6 +175,22 @@ export default function RoleManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Email Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit User Email</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>New Email</Label>
+              <Input type="email" placeholder="newemail@example.com" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} required />
+            </div>
+            <Button className="w-full" onClick={handleEditEmail} disabled={editingEmail}>
+              {editingEmail ? "Updating..." : "Update Email"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader><CardTitle className="text-lg">Role Permissions</CardTitle></CardHeader>
