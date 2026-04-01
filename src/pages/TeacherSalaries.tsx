@@ -198,6 +198,12 @@ export default function TeacherSalaries() {
     setEditSalary(null);
   };
 
+  const handleDeleteSalary = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this salary record? This action cannot be undone.")) return;
+    await deleteSalary(id);
+    toast.success("Salary record deleted");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
