@@ -78,9 +78,9 @@ export default function RoleManagement() {
     setCreating(false);
   };
 
-  const openEditEmail = (userId: string) => {
+  const openEditEmail = (userId: string, currentEmail: string) => {
     setEditUserId(userId);
-    setEditEmail("");
+    setEditEmail(currentEmail);
     setEditOpen(true);
   };
 
