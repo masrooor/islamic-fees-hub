@@ -34,9 +34,15 @@ export default function RoleManagement() {
 
   const fetchRoles = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("user_roles").select("*");
-    if (data) {
-      setRoles(data.map((r: any) => ({ id: r.id, userId: r.user_id, role: r.role })));
+    const [rolesRes, usersRes] = await Promise.all([
+      supabase.from("user_roles").select("*"),
+      supabase.functions.invoke("list-users"),
+    ]);
+    const emailMap: Record<string, string> = usersRes.data?.emailMap ?? {};
+    if (rolesRes.data) {
+      setRoles(rolesRes.data.map((r: any) => ({
+        id: r.id, userId: r.user_id, role: r.role, email: emailMap[r.user_id] || "",
+      })));
     }
     setLoading(false);
   }, []);
@@ -72,9 +78,9 @@ export default function RoleManagement() {
     setCreating(false);
   };
 
-  const openEditEmail = (userId: string) => {
+  const openEditEmail = (userId: string, currentEmail: string) => {
     setEditUserId(userId);
-    setEditEmail("");
+    setEditEmail(currentEmail);
     setEditOpen(true);
   };
 
@@ -90,6 +96,7 @@ export default function RoleManagement() {
       } else {
         toast.success("Email updated successfully");
         setEditOpen(false);
+        await fetchRoles();
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to update email");
@@ -146,15 +153,15 @@ export default function RoleManagement() {
           {loading ? <p className="text-sm text-muted-foreground text-center py-8">Loading...</p> : roles.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No roles found.</p> : (
             <Table>
               <TableHeader><TableRow>
-                <TableHead>User ID</TableHead><TableHead>Current Role</TableHead><TableHead>Edit Email</TableHead><TableHead className="text-right">Change Role</TableHead>
+                <TableHead>Email</TableHead><TableHead>Current Role</TableHead><TableHead>Edit Email</TableHead><TableHead className="text-right">Change Role</TableHead>
               </TableRow></TableHeader>
               <TableBody>
                 {roles.map((r) => (
                   <TableRow key={r.id}>
-                    <TableCell className="font-mono text-xs">{r.userId.slice(0, 8)}...</TableCell>
+                    <TableCell className="text-sm">{r.email || <span className="text-muted-foreground font-mono text-xs">{r.userId.slice(0, 8)}...</span>}</TableCell>
                     <TableCell><Badge variant={roleBadgeVariant(r.role)}>{r.role}</Badge></TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm" onClick={() => openEditEmail(r.userId)} title="Edit Email">
+                      <Button variant="ghost" size="sm" onClick={() => openEditEmail(r.userId, r.email || "")} title="Edit Email">
                         <Pencil className="h-4 w-4 mr-1" /> Edit Email
                       </Button>
                     </TableCell>
