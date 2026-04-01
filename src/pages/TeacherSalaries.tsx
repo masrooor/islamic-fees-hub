@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, AlertCircle, Upload, Printer, Pencil } from "lucide-react";
+import { Plus, AlertCircle, Upload, Printer, Pencil, Trash2 } from "lucide-react";
 import ProofUpload from "@/components/ProofUpload";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function TeacherSalaries() {
   const { teachers } = useTeachers();
-  const { salaries, loading, addSalary, updateSalary } = useTeacherSalaries();
+  const { salaries, loading, addSalary, updateSalary, deleteSalary } = useTeacherSalaries();
   const { loans, updateLoan } = useTeacherLoans();
   const { advances } = useTeacherAdvances();
   const [open, setOpen] = useState(false);
@@ -87,8 +87,14 @@ export default function TeacherSalaries() {
     }
   };
 
+  // Teachers not yet paid for the selected month in the pay dialog
+  const paidForSelectedMonth = new Set(salaries.filter((s) => s.month === form.month).map((s) => s.teacherId));
+  const unpaidActiveTeachers = teachers.filter((t) => t.status === "active" && !paidForSelectedMonth.has(t.id));
+
   const handleSubmit = async () => {
     if (!form.teacherId) { toast.error("Select a teacher"); return; }
+    // Double-check duplicate
+    if (paidForSelectedMonth.has(form.teacherId)) { toast.error("Salary already paid for this teacher this month"); return; }
     if (form.paymentMode === "online" && !form.proofImageUrl) { toast.error("Please upload payment proof for online payment"); return; }
     await addSalary({
       teacherId: form.teacherId, month: form.month, baseSalary, loanDeduction: loanDeduction + advanceForMonth,
@@ -192,6 +198,12 @@ export default function TeacherSalaries() {
     setEditSalary(null);
   };
 
+  const handleDeleteSalary = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this salary record? This action cannot be undone.")) return;
+    await deleteSalary(id);
+    toast.success("Salary record deleted");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -207,12 +219,15 @@ export default function TeacherSalaries() {
               <div><Label>Teacher</Label>
                 <Select value={form.teacherId} onValueChange={(v) => setForm({ ...form, teacherId: v })}>
                   <SelectTrigger><SelectValue placeholder="Select teacher" /></SelectTrigger>
-                  <SelectContent>{teachers.filter((t) => t.status === "active").map((t) => (
-                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                  ))}</SelectContent>
+                  <SelectContent>
+                    {unpaidActiveTeachers.length === 0 && <p className="text-sm text-muted-foreground p-2 text-center">All teachers paid for this month</p>}
+                    {unpaidActiveTeachers.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </div>
-              <div><Label>Month</Label><Input type="month" value={form.month} min={format(new Date(), "yyyy-MM")} max={format(new Date(), "yyyy-MM")} onChange={(e) => setForm({ ...form, month: e.target.value })} /></div>
+              <div><Label>Month</Label><Input type="month" value={form.month} min={format(new Date(), "yyyy-MM")} max={format(new Date(), "yyyy-MM")} onChange={(e) => setForm({ ...form, month: e.target.value, teacherId: "" })} /></div>
               
 
               {/* Payment Mode */}
@@ -376,6 +391,9 @@ export default function TeacherSalaries() {
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => printSalarySlip(s.id)} title="Print Slip">
                           <Printer className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteSalary(s.id)} title="Delete" className="text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
