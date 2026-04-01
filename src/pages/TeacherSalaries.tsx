@@ -213,9 +213,12 @@ export default function TeacherSalaries() {
               <div><Label>Teacher</Label>
                 <Select value={form.teacherId} onValueChange={(v) => setForm({ ...form, teacherId: v })}>
                   <SelectTrigger><SelectValue placeholder="Select teacher" /></SelectTrigger>
-                  <SelectContent>{teachers.filter((t) => t.status === "active").map((t) => (
-                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                  ))}</SelectContent>
+                  <SelectContent>
+                    {unpaidActiveTeachers.length === 0 && <p className="text-sm text-muted-foreground p-2 text-center">All teachers paid for this month</p>}
+                    {unpaidActiveTeachers.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </div>
               <div><Label>Month</Label><Input type="month" value={form.month} min={format(new Date(), "yyyy-MM")} max={format(new Date(), "yyyy-MM")} onChange={(e) => setForm({ ...form, month: e.target.value })} /></div>
