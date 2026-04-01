@@ -87,8 +87,14 @@ export default function TeacherSalaries() {
     }
   };
 
+  // Teachers not yet paid for the selected month in the pay dialog
+  const paidForSelectedMonth = new Set(salaries.filter((s) => s.month === form.month).map((s) => s.teacherId));
+  const unpaidActiveTeachers = teachers.filter((t) => t.status === "active" && !paidForSelectedMonth.has(t.id));
+
   const handleSubmit = async () => {
     if (!form.teacherId) { toast.error("Select a teacher"); return; }
+    // Double-check duplicate
+    if (paidForSelectedMonth.has(form.teacherId)) { toast.error("Salary already paid for this teacher this month"); return; }
     if (form.paymentMode === "online" && !form.proofImageUrl) { toast.error("Please upload payment proof for online payment"); return; }
     await addSalary({
       teacherId: form.teacherId, month: form.month, baseSalary, loanDeduction: loanDeduction + advanceForMonth,
