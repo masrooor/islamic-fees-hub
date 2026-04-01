@@ -392,6 +392,9 @@ export default function TeacherSalaries() {
                         <Button variant="ghost" size="icon" onClick={() => printSalarySlip(s.id)} title="Print Slip">
                           <Printer className="h-4 w-4" />
                         </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteSalary(s.id)} title="Delete" className="text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
