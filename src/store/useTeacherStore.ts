@@ -145,7 +145,12 @@ export function useTeacherSalaries() {
     await fetchSalaries();
   }, [fetchSalaries]);
 
-  return { salaries, loading, addSalary, updateSalary };
+  const deleteSalary = useCallback(async (id: string) => {
+    await supabase.from("teacher_salaries").delete().eq("id", id);
+    await fetchSalaries();
+  }, [fetchSalaries]);
+
+  return { salaries, loading, addSalary, updateSalary, deleteSalary };
 }
 
 export function useTeacherAttendance() {
